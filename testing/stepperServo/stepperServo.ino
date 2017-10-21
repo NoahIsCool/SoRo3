@@ -5,15 +5,10 @@
  * Anyways, for this one just type in the position you want the
  * servo to go to and the servo will go to that position as fast
  * as its little motor can go.
- * one day when you want to be all fancy like, like monical level fancy
- * you can type in something like this:
- * 40 5
- * BUT I cant seem to figure out how to get the arduino to read
- * in more than one number at a time...
+ * if you want to be all fancy like, like monical level fancy
+ * you can change the flag mode to 1 and it will now go to the
+ * new position within a time. Just change the time to what you want
  * What that will do is send the servo to position 40 in 5 seconds. 
- * In other words, if you give it 2 arguments
- * the first one will set the positio and the second one will
- * set how long it will take to get there in seconds.
  * Dont go crazy with the time man.
  * 
  * You also have to watch out to make sure you dont give it a
@@ -28,9 +23,10 @@
 Servo servo; 
 int max = 270;
 int min = 90;
-int pos = 180;
-int oldPos = 180;
+long pos = 180;
+long oldPos = 180;
 int time = 0;
+bool mode = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -42,12 +38,8 @@ void setup() {
   Serial.println("Hello world!");
 }
 
-void loop() {
-
-  //just sets the position and goes there at max speed
-  if(Serial.available()){
-    pos = Serial.parseInt();
-    if(pos > max || pos < min){
+void gotoPos(long pos){
+  if(pos > max || pos < min){
       Serial.print(pos);
       Serial.println(" too large...Or small...Try something else but better...");
       return;
@@ -58,8 +50,42 @@ void loop() {
     delay(15);  //delay 15 microseconds
     Serial.print(pos);
     Serial.println(" is accepted");
-  }else if(time > 0){
+}
+
+void gotoPosInTime(long pos,int time){
+  if(pos > max || pos < min){
+      Serial.print(pos);
+      Serial.println(" too large...Or small...Try something else but better...");
+      return;
+    }
+    Serial.println("going to ");
+    Serial.print(pos);
+    Serial.println(" in ");
+    Serial.print(time);
+    Serial.println(" seconds");
+    //speed algorithm. What it does is update the the stepper motor position in 
+    //regular intervals so that it will get to the disired position in time seconds
+    int step = pos > oldPos ? 1 : -1;
+    step = abs(pos - oldPos) / 10;
+    int cycles = 10;
+    for(int i = oldPos; i != pos; i+=step){
+      servo.write(i);
+      delay((time * 1000.0)/cycles);
+    }
+    oldPos = pos;
+}
+
+void loop() {
+
+  //just sets the position and goes there at max speed
+  if(Serial.available()){
+    pos = Serial.parseInt();
     
+    if(!mode){
+	gotoPos(pos);
+    }else{
+	gotoPosInTime(pos,time);
+    }
   }
 }
 
@@ -70,22 +96,5 @@ void loop() {
  * //pos = Serial.parseInt();
     //time = Serial.parseInt();
     Serial.flush();
-    if(pos > max || pos < min){
-      Serial.print(pos);
-      Serial.println(" too large...Or small...Try something else but better...");
-      return;
-    }
-    Serial.print(pos);
-    Serial.println(" pos is accepted");
-    Serial.print(time);
-    Serial.println(" seconds is also accepted");
-    //speed algorithm. What it does is update the 
-    int step = pos > oldPos ? 1 : -1;
-    step = abs(pos - oldPos) / 10;
-    int cycles = 10;
-    for(int i = oldPos; i != pos; i+=step){
-      servo.write(i);
-      delay((time * 1000.0)/cycles);
-    }
-    oldPos = pos;
+    
  */
