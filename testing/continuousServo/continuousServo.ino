@@ -12,28 +12,36 @@
 #include <Servo.h>
 
 Servo servo;
-long speed = 0;
+long speed = 50;
+
+int cw = 5;
+bool cwState = LOW;
+int ccw = 6;
+bool ccwState = LOW;
 
 //scales input value to the range of -180 to 180
 long map(long x){
-  return (x - -100) * (180 - 0) / (100 - -100) + 0;
+  return (x - -100) * (255 - 0) / (100 - -100) + 0;
 }
 
 void setup() {
   Serial.begin(9600);
+  pinMode(cw,INPUT);
+  pinMode(ccw,INPUT);
   servo.attach(9);
-  servo.write(map(0));
+  servo.write(128);
 
   //waits for the serial port to connect
-  while(!Serial);
-  Serial.println("Hello world!");
+  //while(!Serial);
+  //Serial.println("Hello world!");
 }
 
 void loop() {
-  if(Serial.available()){
-    speed = Serial.parseInt();
-    servo.write(map(speed));
-    Serial.print("updated to ");
-    Serial.println(map(speed));
-  }
+  Serial.println(digitalRead(cw));
+  if(digitalRead(cw)){
+    servo.write(150);
+  }else if(digitalRead(ccw)){
+    servo.write(100);
+  }else
+    servo.write(128);
 }

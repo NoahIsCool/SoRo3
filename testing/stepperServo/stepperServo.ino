@@ -21,8 +21,8 @@
 #include <Servo.h>
 
 Servo servo; 
-int max = 270;
-int min = 90;
+int max = 180;
+int min = 0;
 long pos = 180;
 long oldPos = 180;
 int time = 0;
@@ -31,7 +31,7 @@ bool mode = 0;
 void setup() {
   Serial.begin(9600);
   servo.attach(9);
-  servo.write(180);
+  servo.write(90);
 
   //waits for the serial port to connect
   while(!Serial);
@@ -82,19 +82,9 @@ void loop() {
     pos = Serial.parseInt();
     
     if(!mode){
-	gotoPos(pos);
+	    gotoPos(pos);
     }else{
-	gotoPosInTime(pos,time);
+	    gotoPosInTime(pos,time);
     }
   }
 }
-
-/*
- * this code is for setting the speed but I cant seem to read
- * it in correctly
- * 
- * //pos = Serial.parseInt();
-    //time = Serial.parseInt();
-    Serial.flush();
-    
- */
