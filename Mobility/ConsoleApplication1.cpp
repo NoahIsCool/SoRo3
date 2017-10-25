@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include <math.h>
 
-void main()
+int main()
 {
 	// Location of rover. 0s are placeholders
 	double roverLat = 0;
@@ -45,4 +45,5 @@ void main()
 		// drive(distance);
 
 	}
+	return 1;
 }
