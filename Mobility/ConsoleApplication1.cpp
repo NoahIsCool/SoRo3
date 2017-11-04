@@ -1,71 +1,54 @@
 
-// ConsoleApplication1.cpp : Defines the entry point for the console application.
-//
+import math
 
-#include "stdafx.h"
-#include <math.h>
+def main(longitude, latitude, roverLat, roverLong):
+    RADIUS_OF_EARTH = 6371 * (1000);
 
-int main()
-{
-	double RADIUS_OF_EARTH = 6371 * (1000);
+    #Location of rover. 0s are placeholders - need it in degrees
+    roverLat = 0.0
+    roverLong = 0.0
 
-	// Location of rover. 0s are placeholders - need it in degrees
-	double roverLat = 0;
-	double roverLong = 0;
+    #Get longitude, latitude, height, and number of satellites - need it in degrees
+    #0s are placeholders
+    longitude = 0.0
+    latitude = 0.0
 
-	// Get longitude, latitude, height, and number of satellites - need it in degrees
-	// 0s are placeholders
-	double longitude = 0;
-	double latitude = 0;
+    # convert longitude and latitude components to meters
+    # Ask about difference in degree latitude
+    longMeters = longitude * RADIUS_OF_EARTH * math.cos(math.fabs(latitude - roverLat)) #(latitude - roverLat)
+    latMeters = latitude * RADIUS_OF_EARTH
+    longRovMeters = roverLong * RADIUS_OF_EARTH
+    latRovMeters = roverLat * RADIUS_OF_EARTH 
 
-	// convert longitude and latitude components to meters
-	// Ask about difference in degree latitude
-	double longMeters = longitude * RADIUS_OF_EARTH * cos(abs(latitude - roverLat)); // (latitude - roverLat)
-	double latMeters = latitude * RADIUS_OF_EARTH;
-	double longRovMeters = roverLong * RADIUS_OF_EARTH;
-	double latRovMeters = roverLat * RADIUS_OF_EARTH ;
+    # Probably need to incorporate magnitudes
+    latMeterTotal = (latMeters - latRovMeters)
+    longMeterTotal = (longMeters - longRovMeters)
+    tangent = 0.0
+    distance = 0.0
+    bearingDiff = 0.0
+    while ((longRovMeters != longMeters) & (latRovMeters != latMeters)):
+        tangent = (longMeterTotal / latMeterTotal)
+    distance = math.sqrt(math.pow(longMeterTotal, 2) + math.pow(latMeterTotal, 2))
+    bearingDiff = math.atan(tangent)
+    if (longMeterTotal < 0):
+        bearingDiff += 180
+        # Make a turning method
+        """if (bearingDiff >= 90):
+            turnInPlace(bearingDiff)
+    else:
+        turnInArc(bearingDiff)"""
+        #turn(bearing)
+        # Make a drive method
+        #drive(distance)
+    print("Bearing: ", bearingDiff, ", Distance: ", distance)
+    if (distance <= 2):
+        print("Distance is within 2 meters of the destination.")
+if(__name__=="__main__"):
+    main(0, 0, 0, 0)
 
-	// Probably need to incorporate magnitudes
-	double latMeterTotal = (latMeters - latRovMeters);
-	double longMeterTotal = (longMeters - longRovMeters);
-	double tan;
-	double distance;
-	double bearingDiff;
+"""def turnInPlace(bearing):
+    return 0;
 
-	while ((longRovMeters != longMeters) && (latRovMeters != latMeters))
-	{
-		tan = (longMeterTotal / latMeterTotal);
-		distance = sqrt(pow(longMeterTotal, 2) + pow(latMeterTotal, 2));
-		bearingDiff = atan(tan);
-		if (longMeterTotal < 0)
-		{
-			bearingDiff += 180;
-		}
-		// Make a turning method
-		if (bearingDiff >= 90)
-		{
-			turnInPlace(bearingDiff);
-		}
-		else
-		{
-			turnInArc(bearingDiff);
-		}
-		//turn(bearing);
-		// Make a drive method
-		// drive(distance);
+def turnInArc(bearing):
+    return 0;"""
 
-	}
-	return 1;
-}
-
-int turnInPlace(double bearing)
-{
-
-	return 0;
-}
-
-int turnInArc(double bearing)
-{
-
-	return 0;
-}
