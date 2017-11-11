@@ -20,11 +20,11 @@ def main():
     #Location of rover, from the top.
     #driver.read is the literal output from the tcp driver
     #framer turns bytes into SBP messages (swift binary protocol)
-    #handler is an itterable to read the messages
+    #handler is an iterable to read the messages
     with Handler(Framer(driver.read, None, verbose=True)) as source:
-        #reeds all the messages in a loop as they are recieved
+        #reads all the messages in a loop as they are received
         for msg, metadata in source.filter(SBP_MSG_POS_LLH):
-            #Shouldnt We need an elivation?.. that's msg.height
+            #Shouldnt We need an elevation?.. that's msg.height
             #int of acuracy is [h/v]_acuracy also there is n_sats
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
@@ -45,7 +45,7 @@ def main():
             # If we're within 2 meters of the destination
             if (distance <= 2):
                 print("Distance is within 2 meters of the destination.")
-                #TODO: put a break to say we are finnished
+                #TODO: put a break to say we are finished
 def getArgs():
     """
     Get and parse arguments.
