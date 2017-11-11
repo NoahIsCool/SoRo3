@@ -4,6 +4,8 @@ import math
 from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client import Handler, Framer
 from sbp.navigation import SBP_MSG_POS_LLH, MsgPosLLH
+from sbp.client.drivers.pyserial_driver import PySerialDriver
+
 
 """ This code provides the rover with autonomous GPS navigation capabilites.
     There will be two ways of inputting the destination coordinates:
@@ -16,7 +18,10 @@ from sbp.navigation import SBP_MSG_POS_LLH, MsgPosLLH
 
 def main():
     args = getArgs()
-    driver = TCPDriver('192.168.1.222', '55555')
+    if args.u[0] is 'False':
+        driver = TCPDriver('192.168.1.222', '55555')
+    else
+        driver =  PySerialDriver(args.u[0], baud=1000000)
     #Location of rover, from the top.
     #driver.read is the literal output from the tcp driver
     #framer turns bytes into SBP messages (swift binary protocol)
@@ -63,6 +68,11 @@ def getArgs():
         default=0,
         nargs=1,
         help="specify the latitude in decimal.")
+    parser.add_argument(
+        "-u",
+        default=['/dev/ttyUSB0'],
+        nargs=1,
+        help="specify the usb port.")
     return parser.parse_args()
 
 def getDistance(longitude, latitude, roverLat, roverLong):
