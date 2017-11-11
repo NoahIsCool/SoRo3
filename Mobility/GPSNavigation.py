@@ -23,8 +23,7 @@ def main():
     if args.u is False:
         driver = TCPDriver('192.168.1.222', '55555')
     else:
-        driver =  PySerialDriver('/dev/ttyUSB0', baud=115200)
-
+        driver =  PySerialDriver('/dev/ttyUSB1', baud=115200)
     #Location of rover, from the top.
     #driver.read is the literal output from the tcp driver
     #framer turns bytes into SBP messages (swift binary protocol)
@@ -36,7 +35,6 @@ def main():
             #int of acuracy is [h/v]_acuracy also there is n_sats
             lastLat = roverLat
             lastLong = roverLong
-
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
 
@@ -52,12 +50,11 @@ def main():
             #TODO: drive(distance)
 
             #Need to fix this to output the proper value of theta
-            print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta)
+            print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
 
             # If we're within 2 meters of the destination
             if (distance <= 2):
                 print "Distance is within 2 meters of the destination."
-
                 #TODO: put a break to say we are finished
 def getArgs():
     """
@@ -77,7 +74,6 @@ def getArgs():
     parser.add_argument(
         "-u",
         default=False,
-
         help="specify the usb port.")
     return parser.parse_args()
 
@@ -97,8 +93,16 @@ def getDistance(longitude, latitude, roverLat, roverLong):
 
 def getMyBearing(roverLat, roverLong, lastLat, lastLong):
     # FIX THIS:
-    return getBearing(roverLat, roverLong, lastLat, lastLong)
+    # return math.atan2((roverLat - lastLong)/( roverLong - lastLong))
+    # Calulate change in Latitude
+    deltaLat = roverLat - lastLat
+    # Calculate change in Longitude
+    deltaLon = roverLong- lastLong
+    # Bearing, represented as nearest offset from North. (+/-180 degrees from North)
+    theta = math.atan2(math.sin(deltaLon) * math.cos(roverLat), math.cos(lastLat) * math.sin(roverLat) - math.sin(lastLat) * math.cos(roverLat) * math.cos(deltaLon))
+    return theta
     
+	
 def getBearing(longitude, latitude, roverLat, roverLong):
     # Calulate change in Latitude
     deltaLat = latitude - roverLat
@@ -111,6 +115,7 @@ def getBearing(longitude, latitude, roverLat, roverLong):
 def drive(distance):
     #TODO: Make a drive method
     return 0
+
 def turn(bearing):
     #TODO: Make a turning method
     """if (bearingDiff >= 90):
@@ -118,9 +123,11 @@ def turn(bearing):
     else:
         turnInArc(bearingDiff)"""
     return 0
+
 def turnInPlace(bearing):
     #TODO: finnish this
     return 0
+
 def turnInArc(bearing):
     #TODO: finnish this
     return 0
