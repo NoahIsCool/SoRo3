@@ -18,10 +18,13 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
 
 def main():
     args = getArgs()
-    if args.u[0] is 'False':
+    roverLat = 0.0
+    roverLong = 0.0
+    if args.u is False:
         driver = TCPDriver('192.168.1.222', '55555')
-    else
-        driver =  PySerialDriver(args.u[0], baud=1000000)
+    else:
+        driver =  PySerialDriver('/dev/ttyUSB0', baud=115200)
+
     #Location of rover, from the top.
     #driver.read is the literal output from the tcp driver
     #framer turns bytes into SBP messages (swift binary protocol)
@@ -31,25 +34,30 @@ def main():
         for msg, metadata in source.filter(SBP_MSG_POS_LLH):
             #Shouldnt We need an elevation?.. that's msg.height
             #int of acuracy is [h/v]_acuracy also there is n_sats
+            lastLat = roverLat
+            lastLong = roverLong
+
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
 
             #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
-            longitude = math.radians(args.longitude[0])
-            latitude = math.radians(args.latitude[0])
+            longitude = math.radians(float(args.longitude))
+            latitude = math.radians(float(args.latitude))
 
-            distance = getDistance(longitude, latitude, roverLat, roverLong)
+            distance = getDistance( longitude, latitude, roverLat, roverLong)
             theta = getBearing(longitude, latitude, roverLat, roverLong)
+            deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
 
             #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
             #TODO: drive(distance)
 
             #Need to fix this to output the proper value of theta
-            print("Bearing: ", 360 + math.degrees(theta), ", Distance: ", d)
+            print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta)
 
             # If we're within 2 meters of the destination
             if (distance <= 2):
-                print("Distance is within 2 meters of the destination.")
+                print "Distance is within 2 meters of the destination."
+
                 #TODO: put a break to say we are finished
 def getArgs():
     """
@@ -57,21 +65,19 @@ def getArgs():
     """
     import argparse
     parser = argparse.ArgumentParser(
-        description="Swift Navigation SBP Example.")
+        description="Travel to a specified latitude and longitude")
     parser.add_argument(
         "--longitude",
-        default=0,
-        nargs=1,
+        default=-122.41883,
         help="specify the longitude in decimal.")
     parser.add_argument(
         "--latitude",
-        default=0,
-        nargs=1,
+        default=37.77432,
         help="specify the latitude in decimal.")
     parser.add_argument(
         "-u",
-        default=['/dev/ttyUSB0'],
-        nargs=1,
+        default=False,
+
         help="specify the usb port.")
     return parser.parse_args()
 
@@ -89,6 +95,10 @@ def getDistance(longitude, latitude, roverLat, roverLong):
     d = RADIUS_OF_EARTH * c
     return d
 
+def getMyBearing(roverLat, roverLong, lastLat, lastLong):
+    # FIX THIS:
+    return getBearing(roverLat, roverLong, lastLat, lastLong)
+    
 def getBearing(longitude, latitude, roverLat, roverLong):
     # Calulate change in Latitude
     deltaLat = latitude - roverLat
