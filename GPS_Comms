@@ -1,1 +1,14 @@
+from sbp.client.drivers.network_drivers import TCPDriver
+from sbp.client import Handler, Framer
+from sbp.navigation import SBP_MSG_POS_LLH, MsgPosLLH
 
+
+driver = TCPDriver('192.168.1.222', '55555')
+
+with Handler(Framer(driver.read, None, verbose=True)) as source:
+	while True:
+		try:
+			msg, metadata = source.filter(SBP_MSG_POS_LLH).next()
+			print "%f,%f,%f" % (msg.lat , msg.lon , msg.height )
+		except KeyboardInterrupt:
+			pass
