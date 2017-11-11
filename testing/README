@@ -1,0 +1,8 @@
+So here are some arduino files to get us started with testing the robotic arm.
+
+The first 2, stepperServo and continuousServo, I wrote at 11pm on a pants friday night right after I broke my servos soo...props not going to work because I couldnt really test it...
+Feel free to add more test files, edit test files or use the test files. They are here to help teach eachother how these work and unit test everything.
+
+As a side note, the stepperServo file isnt as great as I wanted it to be. I am having trouble sending multiple values (time and pos) to the arduino over serial. I dont know why they made the serial interface so god damn hard but they did. Its really killing my pants friday...Anyways, I made it so that all you have to do is switch the mode to either 0 to have the stepper go to the position as fast as it can or to 1 to have the stepper go to the position in some time.
+
+So the arm that we are going to be testing on uses stepper motors not coninuous motors...So if you want to look into how to use those, checkout the stepper test file I added.

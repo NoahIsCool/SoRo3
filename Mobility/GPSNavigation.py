@@ -24,6 +24,7 @@ def main():
         driver = TCPDriver('192.168.1.222', '55555')
     else:
         driver =  PySerialDriver('/dev/ttyUSB0', baud=115200)
+
     #Location of rover, from the top.
     #driver.read is the literal output from the tcp driver
     #framer turns bytes into SBP messages (swift binary protocol)
@@ -35,6 +36,7 @@ def main():
             #int of acuracy is [h/v]_acuracy also there is n_sats
             lastLat = roverLat
             lastLong = roverLong
+
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
 
@@ -55,6 +57,7 @@ def main():
             # If we're within 2 meters of the destination
             if (distance <= 2):
                 print "Distance is within 2 meters of the destination."
+
                 #TODO: put a break to say we are finished
 def getArgs():
     """
@@ -74,6 +77,7 @@ def getArgs():
     parser.add_argument(
         "-u",
         default=False,
+
         help="specify the usb port.")
     return parser.parse_args()
 
@@ -95,7 +99,6 @@ def getMyBearing(roverLat, roverLong, lastLat, lastLong):
     # FIX THIS:
     return getBearing(roverLat, roverLong, lastLat, lastLong)
     
-	
 def getBearing(longitude, latitude, roverLat, roverLong):
     # Calulate change in Latitude
     deltaLat = latitude - roverLat
