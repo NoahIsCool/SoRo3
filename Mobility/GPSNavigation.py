@@ -15,7 +15,7 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
     This code then takes the Lat/Lon values and uses the Haversine formula to calculate distance to destination and also calculates
         Theta, which is the closest angle to the destination, offset from North. (e.g. +/-180 degrees from North)"""
 #TODO: move some variables to global variables to improve readability
-
+RADIUS_OF_EARTH = 6371 * (1000)
 def main():
     args = getArgs()
     roverLat = 0.0
@@ -111,6 +111,21 @@ def getBearing(longitude, latitude, roverLat, roverLong):
     # Bearing, represented as nearest offset from North. (+/-180 degrees from North)
     theta = math.atan2(math.sin(deltaLon) * math.cos(latitude), math.cos(roverLat) * math.sin(latitude) - math.sin(roverLat) * math.cos(latitude) * math.cos(deltaLon))
     return theta
+
+def getGPSCoordinate(bearing, distance, roverLat, roverLong):
+    # Convert the rover latitude and longitude to radians
+    lat1 = math.radians(roverLat)
+    lon1 = math.radians(roverLong)
+
+    # Takes the lat1, lon2, distance, and bearing does the math needed
+    lat2 = math.asin(math.sin(lat1) * math.cos(distance / RADIUS_OF_EARTH)
+	math.cos(lat1) * math.sin(distance / RADIUS_OF_EARTH) * math.cos(bearing))
+    lon2 = lon1 +  math.atan2(math.sin(bearing) * math.sin(distance / RADIUS_OF_EARTH) 
+	* math.cos(lat1), math.cos(distance / RADIUS_OF_EARTH) - math.sin(lat1) * math.sin(lat2))
+    
+    # Change the latitude and longitude to degrees
+    lat2 = math.degrees(lat2)
+    lon2 = math.degrees(lon2)
 
 def drive(distance):
     #TODO: Make a drive method
