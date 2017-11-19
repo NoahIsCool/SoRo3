@@ -117,7 +117,7 @@ def getGPSCoordinate(bearing, distance, roverLat, roverLong):
     lat1 = math.radians(roverLat)
     lon1 = math.radians(roverLong)
 
-    # Takes the lat1, lon2, distance, and bearing does the math needed
+    # Takes the lat1, lon1, distance, and bearing does the math needed
     lat2 = math.asin(math.sin(lat1) * math.cos(distance / RADIUS_OF_EARTH)
 	math.cos(lat1) * math.sin(distance / RADIUS_OF_EARTH) * math.cos(bearing))
     lon2 = lon1 +  math.atan2(math.sin(bearing) * math.sin(distance / RADIUS_OF_EARTH) 
@@ -126,6 +126,7 @@ def getGPSCoordinate(bearing, distance, roverLat, roverLong):
     # Change the latitude and longitude to degrees
     lat2 = math.degrees(lat2)
     lon2 = math.degrees(lon2)
+    return lat2, lon2
 
 def drive(distance):
     #TODO: Make a drive method
