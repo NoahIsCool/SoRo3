@@ -29,7 +29,7 @@ def main():
     #framer turns bytes into SBP messages (swift binary protocol)
     #handler is an iterable to read the messages
     with Handler(Framer(driver.read, None, verbose=True)) as source:
-        #reads all the messages in a loop as they are received
+	#reads all the messages in a loop as they are received
         for msg, metadata in source.filter(SBP_MSG_POS_LLH):
             #Shouldnt We need an elevation?.. that's msg.height
             #int of acuracy is [h/v]_acuracy also there is n_sats
@@ -39,9 +39,18 @@ def main():
             roverLong = math.radians(msg.lon)
 
             #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
-            longitude = math.radians(float(args.longitude))
-            latitude = math.radians(float(args.latitude))
-
+            if args.bearing is None and args.distance is -1.0:
+                longitude = math.radians(float(args.longitude))
+                latitude = math.radians(float(args.latitude))
+            
+            # If bearing and distance were supplied, get latitude and longitude in degrees
+            if args.bearing is not None and args.distance is not -1.0:
+                bearing = args.bearing
+                distance = args.distance
+                latitude, longitude = getGPSCoordinate(bearing, distance, roverLat, roverLong)
+                latitude = math.radians(latitude)
+                longitude = math.radians(longitude)
+            
             distance = getDistance( longitude, latitude, roverLat, roverLong)
             theta = getBearing(longitude, latitude, roverLat, roverLong)
             deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
@@ -71,6 +80,13 @@ def getArgs():
         "--latitude",
         default=37.77432,
         help="specify the latitude in decimal.")
+    parser.add_argument(
+        "--bearing",
+        help="specify the bearing to the destination in degrees.")
+    parser.add_argument(
+        "--distance",
+        default=-1.0,
+        help="specify the distance to the destination in meters.")
     parser.add_argument(
         "-u",
         default=False,
@@ -116,13 +132,14 @@ def getGPSCoordinate(bearing, distance, roverLat, roverLong):
     # Convert the rover latitude and longitude to radians
     lat1 = math.radians(roverLat)
     lon1 = math.radians(roverLong)
+    bearing = math.radians(bearing)
 
-    # Takes the lat1, lon1, distance, and bearing does the math needed
-    lat2 = math.asin(math.sin(lat1) * math.cos(distance / RADIUS_OF_EARTH)
-	math.cos(lat1) * math.sin(distance / RADIUS_OF_EARTH) * math.cos(bearing))
-    lon2 = lon1 +  math.atan2(math.sin(bearing) * math.sin(distance / RADIUS_OF_EARTH) 
-	* math.cos(lat1), math.cos(distance / RADIUS_OF_EARTH) - math.sin(lat1) * math.sin(lat2))
-    
+    # Takes the lat1, lon2, distance, and bearing does the math needed
+    lat2 = math.asin(math.sin(lat1) * math.cos(distance / RADIUS_OF_EARTH) + 
+                     math.cos(lat1) * math.sin(distance / RADIUS_OF_EARTH) * math.cos(bearing))
+    lon2 = lon1 +  math.atan2(math.sin(bearing) * math.sin(distance / RADIUS_OF_EARTH) * 
+                              math.cos(lat1), math.cos(distance / RADIUS_OF_EARTH) - math.sin(lat1) * math.sin(lat2))
+
     # Change the latitude and longitude to degrees
     lat2 = math.degrees(lat2)
     lon2 = math.degrees(lon2)
