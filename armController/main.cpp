@@ -45,9 +45,9 @@ float averageVoltage(void)
 */
 void actMove(int dir){
 	if(dir == 1){
-		actuator = max;
+		actuator = MAX;
 	}else if(dir == 2){
-		actuator = min;
+		actuator = MIN;
 	}else{
 		actuator = averageVoltate(); //need to cast this into a pwm signal
 	}
@@ -79,9 +79,9 @@ void contMove(int dir){
 */
 void stepperMove(int dir){
 	if(dir == 1){
-		stepper = max;
+		stepper = MAX;
 	}else if(dir == 2){
-		stepper = min;
+		stepper = MIN;
 	}else{
 		stepper = averageVoltate(); //need to cast this into a pwm signal
 	}
