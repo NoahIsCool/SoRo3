@@ -5,7 +5,8 @@ from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client import Handler, Framer
 from sbp.navigation import SBP_MSG_POS_LLH, MsgPosLLH
 from sbp.client.drivers.pyserial_driver import PySerialDriver
-
+import socket
+import pickle
 
 """ This code provides the rover with autonomous GPS navigation capabilites.
     There will be two ways of inputting the destination coordinates:
@@ -24,6 +25,14 @@ def main():
         driver = TCPDriver('192.168.1.222', '55555')
     else:
         driver =  PySerialDriver('/dev/ttyUSB0', baud=115200)
+
+    #socket stuff for communicating with the "arduino" or wheel drivers
+    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    s.bind('',6969)
+    s.listen(True)
+    #this will hold the program until a connection is made
+    conn, addr = s.accept()
+    #need to add the heartbeat
 
     #Location of rover, from the top.
     #driver.read is the literal output from the tcp driver
@@ -108,8 +117,25 @@ def getBearing(longitude, latitude, roverLat, roverLong):
     theta = math.atan2(math.sin(deltaLon) * math.cos(latitude), math.cos(roverLat) * math.sin(latitude) - math.sin(roverLat) * math.cos(latitude) * math.cos(deltaLon))
     return theta
 
+#all turning and driving methods, send the data in this order
+#Left Front Wheel
+#Left Middle Wheel
+#Left Back Wheel
+#Right Front Wheel
+#Right Middle Wheel
+#Right Back Wheel
+
 def drive(distance):
-    #TODO: Make a drive method
+    #just placeholder...
+    speeds = {0,0,0,0,0,0}
+    if distance > 10:
+	#8192 is 25% of max tourque.
+	speeds = {8192,8192,8192,8192,8192,8192}
+    else:
+	#4096 is 12.5% fo max tourque
+        speeds = {4096,4096,4096,4096,4096,4096}
+    serializedSpeeds = pickle.dumps(speeds)
+    conn.send(serializedSpeeds)
     return 0
 def turn(bearing):
     #TODO: Make a turning method
@@ -120,6 +146,15 @@ def turn(bearing):
     return 0
 def turnInPlace(bearing):
     #TODO: finnish this
+    #thinking we should make sure that the rover is stopped
+    drive(0)
+    #I dont know if the three wheels on the right/left side need to have the same speed or not...
+    #just picking values that are less than 32766 and will give a speed that isnt about 0...
+    RWheelSpeed = 10000 * cos(bearing)
+    LWheelSpeed = -RWheelSpeed
+    speeds = {RWheelSpeed,RWheelSpeed,RWheelSpeed,LWheelSpeed,LWheelSpeed,LWheelSpeed}
+    serializedSpeeds = pickle.dumps(speeds)
+    conn.send(serializedSpeeds)
     return 0
 def turnInArc(bearing):
     #TODO: finnish this
