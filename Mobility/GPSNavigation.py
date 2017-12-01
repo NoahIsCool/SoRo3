@@ -16,6 +16,9 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
         Theta, which is the closest angle to the destination, offset from North. (e.g. +/-180 degrees from North)"""
 #TODO: move some variables to global variables to improve readability
 RADIUS_OF_EARTH = 6371 * (1000)
+latArray = []
+lonArray = []
+
 def main():
     args = getArgs()
     roverLat = 0.0
@@ -38,33 +41,37 @@ def main():
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
 
-            #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
-            if args.bearing is None and args.distance is -1.0:
-                longitude = math.radians(float(args.longitude))
-                latitude = math.radians(float(args.latitude))
+	    if (len(latArray) is 10 and leng(lonArray) is 10):
+		avgLat, avgLon = calcAvgPos(latArray, lonArray, size)
+                #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
+                if args.bearing is None and args.distance is -1.0:
+                    longitude = math.radians(float(args.longitude))
+                    latitude = math.radians(float(args.latitude))
             
-            # If bearing and distance were supplied, get latitude and longitude in degrees
-            if args.bearing is not None and args.distance is not -1.0:
-                bearing = args.bearing
-                distance = args.distance
-                latitude, longitude = getGPSCoordinate(bearing, distance, roverLat, roverLong)
-                latitude = math.radians(latitude)
-                longitude = math.radians(longitude)
+                # If bearing and distance were supplied, get latitude and longitude in degrees
+                if args.bearing is not None and args.distance is not -1.0:
+                    bearing = args.bearing
+                    distance = args.distance
+                    latitude, longitude = getGPSCoordinate(bearing, distance, roverLat, roverLong)
+                    latitude = math.radians(latitude)
+                    longitude = math.radians(longitude)
             
-            distance = getDistance( longitude, latitude, roverLat, roverLong)
-            theta = getBearing(longitude, latitude, roverLat, roverLong)
-            deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
+                distance = getDistance( longitude, latitude, roverLat, roverLong)
+                theta = getBearing(longitude, latitude, roverLat, roverLong)
+                deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
 
-            #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
-            #TODO: drive(distance)
+                #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
+                #TODO: drive(distance)
 
-            #Need to fix this to output the proper value of theta
-            print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
+                #Need to fix this to output the proper value of theta
+                print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
 
-            # If we're within 2 meters of the destination
-            if (distance <= 2):
-                print "Distance is within 2 meters of the destination."
+                # If we're within 2 meters of the destination
+                if (distance <= 2):
+                    print "Distance is within 2 meters of the destination."
                 #TODO: put a break to say we are finished
+	    else
+	        print "Calibrating"
 def getArgs():
     """
     Get and parse arguments.
@@ -144,6 +151,20 @@ def getGPSCoordinate(bearing, distance, roverLat, roverLong):
     lat2 = math.degrees(lat2)
     lon2 = math.degrees(lon2)
     return lat2, lon2
+
+# Get the average position from given GPS coordinates
+def calcAvgPos(latArray, longArray, size):
+    latTot, lonTot, avgLat, avgLon = 0
+    # Latitude total
+    for i in latArray:
+        latTot += i
+    # Longitude total
+    for j in latArray:
+        lonTot += j
+    # Finding average latitude and longitude
+    avgLat = latTot / size
+    avgLon = lonTot / size
+    return avgLat, avgLon
 
 def drive(distance):
     #TODO: Make a drive method
