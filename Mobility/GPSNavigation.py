@@ -27,24 +27,31 @@ def main():
         driver = TCPDriver('192.168.1.222', '55555')
     else:
         driver =  PySerialDriver('/dev/ttyUSB1', baud=115200)
-    #Location of rover, from the top.
-    #driver.read is the literal output from the tcp driver
-    #framer turns bytes into SBP messages (swift binary protocol)
-    #handler is an iterable to read the messages
+    # Location of rover, from the top.
+    # driver.read is the literal output from the tcp driver
+    # framer turns bytes into SBP messages (swift binary protocol)
+    # handler is an iterable to read the messages
     with Handler(Framer(driver.read, None, verbose=True)) as source:
-	#reads all the messages in a loop as they are received
+	# reads all the messages in a loop as they are received
         for msg, metadata in source.filter(SBP_MSG_POS_LLH):
-            #Shouldnt We need an elevation?.. that's msg.height
-            #int of acuracy is [h/v]_acuracy also there is n_sats
+            # Shouldnt We need an elevation?.. that's msg.height
+            # int of acuracy is [h/v]_acuracy also there is n_sats
             lastLat = roverLat
             lastLong = roverLong
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
 		
             # Need to initialize arrays and get size from arrays
-	    if (len(latArray) is 10 and leng(lonArray) is 10):
-		avgLat, avgLon = calcAvgPos(latArray, lonArray, size)
-                #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
+	    if (len(latArray) is 10 and len(lonArray) is 10):
+		
+		latArray.pop()
+		lonArray.pop()
+		
+		latArray.insert(0, msg.lat)
+		lonArray.insert(0, msg.lon)
+		
+		avgLat, avgLon = calcAvgPos(size)
+                # Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
                 if args.bearing is None and args.distance is -1.0:
                     longitude = math.radians(float(args.longitude))
                     latitude = math.radians(float(args.latitude))
@@ -57,20 +64,20 @@ def main():
                     latitude = math.radians(latitude)
                     longitude = math.radians(longitude)
             
-                distance = getDistance( longitude, latitude, roverLat, roverLong)
-                theta = getBearing(longitude, latitude, roverLat, roverLong)
-                deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
+                distance = getDistance( longitude, latitude, avgLat, avgLon)
+                theta = getBearing(longitude, latitude, avgLat, avgLon)
+                deltaTheta = getMyBearing(avgLat, avgLon, lastLat, lastLong) - theta
 
                 #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
                 #TODO: drive(distance)
 
-                #Need to fix this to output the proper value of theta
+                # Need to fix this to output the proper value of theta
                 print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
 
                 # If we're within 2 meters of the destination
                 if (distance <= 2):
                     print "Distance is within 2 meters of the destination."
-                #TODO: put a break to say we are finished
+                # TODO: put a break to say we are finished
 	    else
 	        latArray.insert(0, msg.lat)
 		lonArray.insert(0, msg.lon)
@@ -156,13 +163,13 @@ def getGPSCoordinate(bearing, distance, roverLat, roverLong):
     return lat2, lon2
 
 # Get the average position from given GPS coordinates
-def calcAvgPos(latArray, longArray, size):
+def calcAvgPos(size):
     latTot, lonTot, avgLat, avgLon = 0
     # Latitude total
     for i in latArray:
         latTot += i
     # Longitude total
-    for j in latArray:
+    for j in lonArray:
         lonTot += j
     # Finding average latitude and longitude
     avgLat = latTot / size
