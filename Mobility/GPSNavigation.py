@@ -72,6 +72,8 @@ def main():
                     print "Distance is within 2 meters of the destination."
                 #TODO: put a break to say we are finished
 	    else
+	        latArray.insert(0, msg.lat)
+		lonArray.insert(0, msg.lon)
 	        print "Calibrating"
 def getArgs():
     """
