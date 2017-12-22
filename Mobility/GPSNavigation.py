@@ -16,6 +16,9 @@ import pickle
     This code then takes the Lat/Lon values and uses the Haversine formula to calculate distance to destination and also calculates
         Theta, which is the closest angle to the destination, offset from North. (e.g. +/-180 degrees from North)"""
 #TODO: move some variables to global variables to improve readability
+RADIUS_OF_EARTH = 6371 * (1000)
+latArray = []
+lonArray = []
 
 def main():
     args = getArgs()
@@ -24,6 +27,7 @@ def main():
     if args.u is False:
         driver = TCPDriver('192.168.1.222', '55555')
     else:
+<<<<<<< HEAD
         driver =  PySerialDriver('/dev/ttyUSB0', baud=115200)
 
     #socket stuff for communicating with the "arduino" or wheel drivers
@@ -38,17 +42,59 @@ def main():
     #driver.read is the literal output from the tcp driver
     #framer turns bytes into SBP messages (swift binary protocol)
     #handler is an iterable to read the messages
+=======
+        driver =  PySerialDriver('/dev/ttyUSB1', baud=115200)
+    # Location of rover, from the top.
+    # driver.read is the literal output from the tcp driver
+    # framer turns bytes into SBP messages (swift binary protocol)
+    # handler is an iterable to read the messages
+>>>>>>> master
     with Handler(Framer(driver.read, None, verbose=True)) as source:
-        #reads all the messages in a loop as they are received
+	# reads all the messages in a loop as they are received
         for msg, metadata in source.filter(SBP_MSG_POS_LLH):
+<<<<<<< HEAD
             #Shouldnt We need an elevation?.. that's msg.height
             #int of acuracy is [h/v]_acuracy also there is n_sats
             lastLat = roverLat
             lastLong = roverLong
 
+=======
+            # Shouldnt We need an elevation?.. that's msg.height
+            # int of acuracy is [h/v]_acuracy also there is n_sats
+            lastLat = roverLat
+            lastLong = roverLong
+>>>>>>> master
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
+		
+            # Need to initialize arrays and get size from arrays
+	    if (len(latArray) is 10 and len(lonArray) is 10):
+		
+		latArray.pop()
+		lonArray.pop()
+		
+		latArray.insert(0, msg.lat)
+		lonArray.insert(0, msg.lon)
+		
+		avgLat, avgLon = calcAvgPos(size)
+                # Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
+                if args.bearing is None and args.distance is -1.0:
+                    longitude = math.radians(float(args.longitude))
+                    latitude = math.radians(float(args.latitude))
+            
+                # If bearing and distance were supplied, get latitude and longitude in degrees
+                if args.bearing is not None and args.distance is not -1.0:
+                    bearing = args.bearing
+                    distance = args.distance
+                    latitude, longitude = getGPSCoordinate(bearing, distance, roverLat, roverLong)
+                    latitude = math.radians(latitude)
+                    longitude = math.radians(longitude)
+            
+                distance = getDistance( longitude, latitude, avgLat, avgLon)
+                theta = getBearing(longitude, latitude, avgLat, avgLon)
+                deltaTheta = getMyBearing(avgLat, avgLon, lastLat, lastLong) - theta
 
+<<<<<<< HEAD
             #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
             longitude = math.radians(float(args.longitude))
             latitude = math.radians(float(args.latitude))
@@ -56,10 +102,15 @@ def main():
             distance = getDistance( longitude, latitude, roverLat, roverLong)
             theta = getBearing(longitude, latitude, roverLat, roverLong)
             deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
+=======
+                #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
+                #TODO: drive(distance)
+>>>>>>> master
 
-            #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
-            #TODO: drive(distance)
+                # Need to fix this to output the proper value of theta
+                print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
 
+<<<<<<< HEAD
             #Need to fix this to output the proper value of theta
             print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta)
 
@@ -68,6 +119,16 @@ def main():
                 print "Distance is within 2 meters of the destination."
 
                 #TODO: put a break to say we are finished
+=======
+                # If we're within 2 meters of the destination
+                if (distance <= 2):
+                    print "Distance is within 2 meters of the destination."
+                # TODO: put a break to say we are finished
+	    else
+	        latArray.insert(0, msg.lat)
+		lonArray.insert(0, msg.lon)
+	        print "Calibrating"
+>>>>>>> master
 def getArgs():
     """
     Get and parse arguments.
@@ -84,9 +145,19 @@ def getArgs():
         default=37.77432,
         help="specify the latitude in decimal.")
     parser.add_argument(
+        "--bearing",
+        help="specify the bearing to the destination in degrees.")
+    parser.add_argument(
+        "--distance",
+        default=-1.0,
+        help="specify the distance to the destination in meters.")
+    parser.add_argument(
         "-u",
         default=False,
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
         help="specify the usb port.")
     return parser.parse_args()
 
@@ -106,8 +177,21 @@ def getDistance(longitude, latitude, roverLat, roverLong):
 
 def getMyBearing(roverLat, roverLong, lastLat, lastLong):
     # FIX THIS:
+<<<<<<< HEAD
     return getBearing(roverLat, roverLong, lastLat, lastLong)
     
+=======
+    # return math.atan2((roverLat - lastLong)/( roverLong - lastLong))
+    # Calulate change in Latitude
+    deltaLat = roverLat - lastLat
+    # Calculate change in Longitude
+    deltaLon = roverLong- lastLong
+    # Bearing, represented as nearest offset from North. (+/-180 degrees from North)
+    theta = math.atan2(math.sin(deltaLon) * math.cos(roverLat), math.cos(lastLat) * math.sin(roverLat) - math.sin(lastLat) * math.cos(roverLat) * math.cos(deltaLon))
+    return theta
+    
+	
+>>>>>>> master
 def getBearing(longitude, latitude, roverLat, roverLong):
     # Calulate change in Latitude
     deltaLat = latitude - roverLat
@@ -117,6 +201,7 @@ def getBearing(longitude, latitude, roverLat, roverLong):
     theta = math.atan2(math.sin(deltaLon) * math.cos(latitude), math.cos(roverLat) * math.sin(latitude) - math.sin(roverLat) * math.cos(latitude) * math.cos(deltaLon))
     return theta
 
+<<<<<<< HEAD
 #all turning and driving methods, send the data in this order
 #Left Front Wheel
 #Left Middle Wheel
@@ -124,6 +209,38 @@ def getBearing(longitude, latitude, roverLat, roverLong):
 #Right Front Wheel
 #Right Middle Wheel
 #Right Back Wheel
+=======
+def getGPSCoordinate(bearing, distance, roverLat, roverLong):
+    # Convert the rover latitude and longitude to radians
+    lat1 = math.radians(roverLat)
+    lon1 = math.radians(roverLong)
+    bearing = math.radians(bearing)
+
+    # Takes the lat1, lon2, distance, and bearing does the math needed
+    lat2 = math.asin(math.sin(lat1) * math.cos(distance / RADIUS_OF_EARTH) + 
+                     math.cos(lat1) * math.sin(distance / RADIUS_OF_EARTH) * math.cos(bearing))
+    lon2 = lon1 +  math.atan2(math.sin(bearing) * math.sin(distance / RADIUS_OF_EARTH) * 
+                              math.cos(lat1), math.cos(distance / RADIUS_OF_EARTH) - math.sin(lat1) * math.sin(lat2))
+
+    # Change the latitude and longitude to degrees
+    lat2 = math.degrees(lat2)
+    lon2 = math.degrees(lon2)
+    return lat2, lon2
+
+# Get the average position from given GPS coordinates
+def calcAvgPos(size):
+    latTot, lonTot, avgLat, avgLon = 0
+    # Latitude total
+    for i in latArray:
+        latTot += i
+    # Longitude total
+    for j in lonArray:
+        lonTot += j
+    # Finding average latitude and longitude
+    avgLat = latTot / size
+    avgLon = lonTot / size
+    return avgLat, avgLon
+>>>>>>> master
 
 def drive(distance):
     #just placeholder...
@@ -137,6 +254,7 @@ def drive(distance):
     serializedSpeeds = pickle.dumps(speeds)
     conn.send(serializedSpeeds)
     return 0
+
 def turn(bearing):
     #TODO: Make a turning method
     """if (bearingDiff >= 90):
@@ -144,6 +262,7 @@ def turn(bearing):
     else:
         turnInArc(bearingDiff)"""
     return 0
+
 def turnInPlace(bearing):
     #TODO: finnish this
     #thinking we should make sure that the rover is stopped
@@ -156,6 +275,7 @@ def turnInPlace(bearing):
     serializedSpeeds = pickle.dumps(speeds)
     conn.send(serializedSpeeds)
     return 0
+
 def turnInArc(bearing):
     #TODO: finnish this
     return 0
