@@ -18,11 +18,11 @@ from sbp.client.drivers.pyserial_driver import PySerialDriver
 RADIUS_OF_EARTH = 6371 * (1000)
 latArray = []
 lonArray = []
+roverLat = 0.0
+roverLong = 0.0
 
 def main():
     args = getArgs()
-    roverLat = 0.0
-    roverLong = 0.0
     if args.u is False:
         driver = TCPDriver('192.168.1.222', '55555')
     else:
@@ -42,46 +42,46 @@ def main():
             roverLong = math.radians(msg.lon)
 		
             # Need to initialize arrays and get size from arrays
-	    if (len(latArray) is 10 and len(lonArray) is 10):
+	    # if (len(latArray) is 10 and len(lonArray) is 10):
 		
-		latArray.pop()
-		lonArray.pop()
+		# latArray.pop()
+		# lonArray.pop()
 		
-		latArray.insert(0, msg.lat)
-		lonArray.insert(0, msg.lon)
+		# latArray.insert(0, msg.lat)
+		# lonArray.insert(0, msg.lon)
 		
-		avgLat, avgLon = calcAvgPos(size)
+		# avgLat, avgLon = calcAvgPos(size)
                 # Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
-                if args.bearing is None and args.distance is -1.0:
-                    longitude = math.radians(float(args.longitude))
-                    latitude = math.radians(float(args.latitude))
-            
-                # If bearing and distance were supplied, get latitude and longitude in degrees
-                if args.bearing is not None and args.distance is not -1.0:
-                    bearing = args.bearing
-                    distance = args.distance
-                    latitude, longitude = getGPSCoordinate(bearing, distance, roverLat, roverLong)
-                    latitude = math.radians(latitude)
-                    longitude = math.radians(longitude)
-            
-                distance = getDistance( longitude, latitude, avgLat, avgLon)
-                theta = getBearing(longitude, latitude, avgLat, avgLon)
-                deltaTheta = getMyBearing(avgLat, avgLon, lastLat, lastLong) - theta
+            if args.bearing is None and args.distance is -1.0:
+                longitude = math.radians(float(args.longitude))
+                latitude = math.radians(float(args.latitude))
+        
+            # If bearing and distance were supplied, get latitude and longitude in degrees
+            if args.bearing is not None and args.distance is not -1.0:
+                bearing = args.bearing
+                distance = args.distance
+                latitude, longitude = getGPSCoordinate(bearing, distance, roverLat, roverLong)
+                latitude = math.radians(latitude)
+                longitude = math.radians(longitude)
+        
+            distance = getDistance( longitude, latitude, roverLat, roverLong)
+            theta = getBearing(longitude, latitude, roverLat, roverLong)
+            deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
 
-                #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
-                #TODO: drive(distance)
+            #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
+            #TODO: drive(distance)
 
-                # Need to fix this to output the proper value of theta
-                print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
+            # Need to fix this to output the proper value of theta
+            print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
 
-                # If we're within 2 meters of the destination
-                if (distance <= 2):
-                    print "Distance is within 2 meters of the destination."
-                # TODO: put a break to say we are finished
-	    else
-	        latArray.insert(0, msg.lat)
-		lonArray.insert(0, msg.lon)
-	        print "Calibrating"
+            # If we're within 2 meters of the destination
+            if (distance <= 2):
+                print "Distance is within 2 meters of the destination."
+            # TODO: put a break to say we are finished
+	    # else
+	    #     latArray.insert(0, msg.lat)
+		# lonArray.insert(0, msg.lon)
+	        # print "Calibrating"
 def getArgs():
     """
     Get and parse arguments.
