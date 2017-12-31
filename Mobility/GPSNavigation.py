@@ -5,7 +5,8 @@ from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client import Handler, Framer
 from sbp.navigation import SBP_MSG_POS_LLH, MsgPosLLH
 from sbp.client.drivers.pyserial_driver import PySerialDriver
-
+import socket
+import pickle
 
 """ This code provides the rover with autonomous GPS navigation capabilites.
     There will be two ways of inputting the destination coordinates:
@@ -26,18 +27,43 @@ def main():
     if args.u is False:
         driver = TCPDriver('192.168.1.222', '55555')
     else:
+<<<<<<< HEAD
+        driver =  PySerialDriver('/dev/ttyUSB0', baud=115200)
+
+    #socket stuff for communicating with the "arduino" or wheel drivers
+    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+    s.bind('',6969)
+    s.listen(True)
+    #this will hold the program until a connection is made
+    conn, addr = s.accept()
+    #need to add the heartbeat
+
+    #Location of rover, from the top.
+    #driver.read is the literal output from the tcp driver
+    #framer turns bytes into SBP messages (swift binary protocol)
+    #handler is an iterable to read the messages
+=======
         driver =  PySerialDriver('/dev/ttyUSB1', baud=115200)
     # Location of rover, from the top.
     # driver.read is the literal output from the tcp driver
     # framer turns bytes into SBP messages (swift binary protocol)
     # handler is an iterable to read the messages
+>>>>>>> master
     with Handler(Framer(driver.read, None, verbose=True)) as source:
 	# reads all the messages in a loop as they are received
         for msg, metadata in source.filter(SBP_MSG_POS_LLH):
+<<<<<<< HEAD
+            #Shouldnt We need an elevation?.. that's msg.height
+            #int of acuracy is [h/v]_acuracy also there is n_sats
+            lastLat = roverLat
+            lastLong = roverLong
+
+=======
             # Shouldnt We need an elevation?.. that's msg.height
             # int of acuracy is [h/v]_acuracy also there is n_sats
             lastLat = roverLat
             lastLong = roverLong
+>>>>>>> master
             roverLat = math.radians(msg.lat)
             roverLong = math.radians(msg.lon)
 		
@@ -68,12 +94,32 @@ def main():
                 theta = getBearing(longitude, latitude, avgLat, avgLon)
                 deltaTheta = getMyBearing(avgLat, avgLon, lastLat, lastLong) - theta
 
+<<<<<<< HEAD
+            #Get longitude, latitude, (not yet...height, and number of satellites) - need it in degrees
+            longitude = math.radians(float(args.longitude))
+            latitude = math.radians(float(args.latitude))
+
+            distance = getDistance( longitude, latitude, roverLat, roverLong)
+            theta = getBearing(longitude, latitude, roverLat, roverLong)
+            deltaTheta = getMyBearing(roverLat, roverLong, lastLat, lastLong) - theta
+=======
                 #TODO: turn(bearing) # somthing like: if math.abs(bearing) > tolerence then turn else drive(distance)
                 #TODO: drive(distance)
+>>>>>>> master
 
                 # Need to fix this to output the proper value of theta
                 print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta), math.degrees(getMyBearing(roverLat, roverLong, lastLat, lastLong))
 
+<<<<<<< HEAD
+            #Need to fix this to output the proper value of theta
+            print "Bearing: ", math.degrees(theta), ", Distance: ", distance, ",Turn:", math.degrees(deltaTheta)
+
+            # If we're within 2 meters of the destination
+            if (distance <= 2):
+                print "Distance is within 2 meters of the destination."
+
+                #TODO: put a break to say we are finished
+=======
                 # If we're within 2 meters of the destination
                 if (distance <= 2):
                     print "Distance is within 2 meters of the destination."
@@ -82,6 +128,7 @@ def main():
 	        latArray.insert(0, msg.lat)
 		lonArray.insert(0, msg.lon)
 	        print "Calibrating"
+>>>>>>> master
 def getArgs():
     """
     Get and parse arguments.
@@ -107,6 +154,10 @@ def getArgs():
     parser.add_argument(
         "-u",
         default=False,
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
         help="specify the usb port.")
     return parser.parse_args()
 
@@ -126,6 +177,10 @@ def getDistance(longitude, latitude, roverLat, roverLong):
 
 def getMyBearing(roverLat, roverLong, lastLat, lastLong):
     # FIX THIS:
+<<<<<<< HEAD
+    return getBearing(roverLat, roverLong, lastLat, lastLong)
+    
+=======
     # return math.atan2((roverLat - lastLong)/( roverLong - lastLong))
     # Calulate change in Latitude
     deltaLat = roverLat - lastLat
@@ -136,6 +191,7 @@ def getMyBearing(roverLat, roverLong, lastLat, lastLong):
     return theta
     
 	
+>>>>>>> master
 def getBearing(longitude, latitude, roverLat, roverLong):
     # Calulate change in Latitude
     deltaLat = latitude - roverLat
@@ -145,6 +201,15 @@ def getBearing(longitude, latitude, roverLat, roverLong):
     theta = math.atan2(math.sin(deltaLon) * math.cos(latitude), math.cos(roverLat) * math.sin(latitude) - math.sin(roverLat) * math.cos(latitude) * math.cos(deltaLon))
     return theta
 
+<<<<<<< HEAD
+#all turning and driving methods, send the data in this order
+#Left Front Wheel
+#Left Middle Wheel
+#Left Back Wheel
+#Right Front Wheel
+#Right Middle Wheel
+#Right Back Wheel
+=======
 def getGPSCoordinate(bearing, distance, roverLat, roverLong):
     # Convert the rover latitude and longitude to radians
     lat1 = math.radians(roverLat)
@@ -175,9 +240,19 @@ def calcAvgPos(size):
     avgLat = latTot / size
     avgLon = lonTot / size
     return avgLat, avgLon
+>>>>>>> master
 
 def drive(distance):
-    #TODO: Make a drive method
+    #just placeholder...
+    speeds = {0,0,0,0,0,0}
+    if distance > 10:
+	#8192 is 25% of max tourque.
+	speeds = {8192,8192,8192,8192,8192,8192}
+    else:
+	#4096 is 12.5% fo max tourque
+        speeds = {4096,4096,4096,4096,4096,4096}
+    serializedSpeeds = pickle.dumps(speeds)
+    conn.send(serializedSpeeds)
     return 0
 
 def turn(bearing):
@@ -190,6 +265,15 @@ def turn(bearing):
 
 def turnInPlace(bearing):
     #TODO: finnish this
+    #thinking we should make sure that the rover is stopped
+    drive(0)
+    #I dont know if the three wheels on the right/left side need to have the same speed or not...
+    #just picking values that are less than 32766 and will give a speed that isnt about 0...
+    RWheelSpeed = 10000 * cos(bearing)
+    LWheelSpeed = -RWheelSpeed
+    speeds = {RWheelSpeed,RWheelSpeed,RWheelSpeed,LWheelSpeed,LWheelSpeed,LWheelSpeed}
+    serializedSpeeds = pickle.dumps(speeds)
+    conn.send(serializedSpeeds)
     return 0
 
 def turnInArc(bearing):

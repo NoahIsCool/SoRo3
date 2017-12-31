@@ -5,23 +5,32 @@ import numpy as np
 def blah(x):
     pass
 
-def findBall(image):
+def findBall(image, gray, dp, minDist, param1, param2, minRadius, maxRadius, lean):
     largest_contour = 0
     cont_index = 0
+    circles = None
     img, contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for idx, contour in enumerate(contours):
         area = cv2.contourArea(contour)
-        if (area > largest_contour):
-            largest_contour = area
+        if dp*minDist*param1*param2*maxRadius*minRadius is not 0:
+            x,y,w,h = cv2.boundingRect(contour)
+            print (x, y, w, h)
+            subImage = image[x:x+w, y:y+h]
+            #cv2.imshow("subImg", subImage)
+            tmpCircles = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, dp, minDist, param1, param2, minRadius, maxRadius)
+            
+            if tmpCircles is not None and (area > largest_contour):
 
-            cont_index = idx
+                largest_contour = area
+                circles = tmpCircles
+                cont_index = idx
     r=(0,0,2,2)
     if len(contours) > 0:
         r = cv2.boundingRect(contours[cont_index])
-    return r,largest_contour
+    return r,largest_contour,circles
 
 # Capture video from camera
-camera = cv2.VideoCapture(1)
+camera = cv2.VideoCapture(0)
 
 # Create a window for the sliders and HSV image.
 cv2.namedWindow("HSV")
@@ -44,11 +53,13 @@ cv2.createTrackbar("Cb_LO", "YCrCb", 0, 255, blah)
 cv2.createTrackbar("Cb_HI", "YCrCb", 0, 255, blah)
 
 cv2.createTrackbar("dp", "Final", 1,5, blah)
-cv2.createTrackbar("Min_Dist", "Final", 5, 1920, blah)
+cv2.createTrackbar("Min_Dist", "Final", 1000, 1920, blah)
 cv2.createTrackbar("param1", "Final", 5,500, blah)
 cv2.createTrackbar("param2", "Final", 5,500, blah)
-cv2.createTrackbar("Min_Radius", "Final", 10,50, blah)
+#cv2.createTrackbar("Min_Radius", "Final", 10,50, blah)
 cv2.createTrackbar("Max_Radius", "Final", 10,50, blah)
+cv2.createTrackbar("Leaneancy", "Final", 5,100, blah)
+
 
 # Keep running until 'q' is pressed
 while(1):
@@ -78,12 +89,14 @@ while(1):
     cr_hi = cv2.getTrackbarPos("Cr_HI", "YCrCb")
     cb_lo = cv2.getTrackbarPos("Cb_LO", "YCrCb")
     cb_hi = cv2.getTrackbarPos("Cb_HI", "YCrCb")
+    
     dp = cv2.getTrackbarPos("dp", "Final")
     minDist = cv2.getTrackbarPos("Min_Dist", "Final")
     param1 = cv2.getTrackbarPos("param1", "Final")
     param2 = cv2.getTrackbarPos("param2", "Final")
-    minRadius = cv2.getTrackbarPos("Min_Radius", "Final")
+    #minRadius = cv2.getTrackbarPos("Min_Radius", "Final")
     maxRadius = cv2.getTrackbarPos("Max_Radius", "Final")
+    lean = cv2.getTrackbarPos("Leaneancy", "Final")
 
     # Create arrays for the lower and upper HSV values
     lower_hsv = np.array([h_lo,s_lo,v_lo])
@@ -103,7 +116,7 @@ while(1):
 
     combined_img = dilation | dilation2
 
-    loct, area = findBall(combined_img)
+    loct, area, circles = findBall(combined_img, gray, dp, minDist, param1, param2, 1, maxRadius, lean)
     x,y,w,h = loct
 
     if (w*h) < 10:
@@ -117,16 +130,13 @@ while(1):
         center_x-=80
         center_y=6--center_y
 
-    #gray_img = combined_img
-    #gray_img = cv2.cvtColor(gray_img, cv2.COLOR_BGR2GRAY
-    if dp*minDist*param1*param2*minRadius*maxRadius is not 0:
-        circles = cv2.HoughCircles(combined_img, cv2.HOUGH_GRADIENT, dp, minDist,
-                                   param1, param2, minRadius, maxRadius)
-        if circles is not None:
-            circles = np.uint16(np.around(circles))
-            for i in circles[0,:]:
-                #cv2.circle(frame, (i[0],i[1]),i[2],(0,255,0),2)
-                cv2.circle(frame, (i[0],i[1]),2,(255,0,0),3)
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for i in circles:
+            center = (i[0] + x, i[1] + y)
+            radius = i[2]
+            cv2.circle(frame, center, radius,(0,255,0),2)
+            cv2.circle(frame, center, 2,(255,0,0),3)
     
     # Display the images
     cv2.imshow("Original", frame)
@@ -141,4 +151,3 @@ while(1):
 # Release the camera and close all windows.
 camera.release()
 cv2.destroyAllWindows()
-
