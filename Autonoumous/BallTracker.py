@@ -4,7 +4,7 @@ import serial
 import _thread
 
 
-class BallTracking:
+class BallTracker:
     def __init__(self):
         # Tilt up/down
         self.tilt = 70
