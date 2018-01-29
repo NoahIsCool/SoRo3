@@ -120,7 +120,6 @@ class GPSNavigator:
         return lat2, lon2
 
     def get_distance(self):
-        self.RADIUS_OF_EARTH = 6371000
         # Haversine Formula:
         # a = sin((lat2-lat1)/2) * sin((lat2-lat1)/2) + cos(lat1) * cos(lat2) * sin((lon2-lon1)/2) * sin((lon2-lon1)/2)
         # Calculate change in Latitude
