@@ -24,6 +24,7 @@ class GPSNavigator:
     RADIUS_OF_EARTH = 6371000
 
     def __init__(self):
+        # initialize variables
         self.history = [10]
         self.args = self.get_args()
         self.rover_lat = 0.0
@@ -35,13 +36,16 @@ class GPSNavigator:
         self.bearing = 0.0
         self.distance = 0.0
 
+        # start navigation method
         self.navigate()
 
     def navigate(self):
+        # Select Driver
         if self.args.u is False:
             driver = TCPDriver('192.168.1.222', '55555')
         else:
             driver = PySerialDriver('/dev/ttyUSB0', baud=115200)  # 68,72,73,74,65535
+
         # Location of rover, from the top.
         # driver.read is the literal output from the tcp driver
         # framer turns bytes into SBP messages (swift binary protocol)
@@ -51,7 +55,10 @@ class GPSNavigator:
             for i in range(10):
                 msg, metadata = source.filter(SBP_MSG_POS_LLH).next()
                 self.history.append(msg)
+
+            # Start Navigation Loop
             while True:
+                # Get Next Driver Message
                 msg, metadata = source.filter(SBP_MSG_POS_LLH).next()
 
                 # Shouldn't We need an elevation?.. that's msg.height
