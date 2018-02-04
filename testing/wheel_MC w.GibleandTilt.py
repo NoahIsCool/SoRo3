@@ -52,25 +52,20 @@ def messenger():
 	global gimble
         
 	while True:
-
+                gimble = (-gimbleDown + -gimbleUp) 
 		hach = leftWheels + rightWheels + gimble + tilt + overdrive
-
-
 		out = chr(2) + str(gimble) + ',' + str(tilt) + ',' + str(leftWheels) + ',' + str(rightWheels) + ',' + str(overdrive) + ',' + str(hach) ## a hash to check for errors
 
-		gimble = (-gimbleDown + -gimbleUp) 
-		 
-
 		try:
-		#sock.send(out + '\n')
+                        #sock.send(out + '\n')
 			ser.write(out )
-		#data = sock.recv(2048)
-		#print out + ">>>>>>" + data
-		#toPrint = 'Left Wheels: ' + str(leftWheels) + ', ' + 'Right Wheels: ' + str(rightWheels) + ', ' + 'GD: ' + str(gimbleDown) + ', ' + 'GU: ' + str(gimbleUp) + ', ' + 'Tot: ' + str(gimble)
-		#toPrint += ', ' + 'Tilt: ' + str(tilt) + ', ' + 'Overdrive: ' + str(overdrive)
-		###out + " {" + ser.readline() + "}"
+                        #data = sock.recv(2048)
+                        #print out + ">>>>>>" + data
+                        #toPrint = 'Left Wheels: ' + str(leftWheels) + ', ' + 'Right Wheels: ' + str(rightWheels) + ', ' + 'GD: ' + str(gimbleDown) + ', ' + 'GU: ' + str(gimbleUp) + ', ' + 'Tot: ' + str(gimble)
+                        #toPrint += ', ' + 'Tilt: ' + str(tilt) + ', ' + 'Overdrive: ' + str(overdrive)
+                        ###out + " {" + ser.readline() + "}"
 
-		#print toPrint
+                        #print toPrint
 			print out + " {" + ser.readline() + "}"
 			
 		except:
@@ -110,30 +105,24 @@ def controller():
 			else:
 				if event.code is 'ABS_RY' and (-3000 < event.state and event.state < 3000):
 					rightWheels = 0
-					#pos[0] = 2
-
-			if event.code is 'ABS_RZ' and not( -5 < event.state < 5):#claw up
-				#pos[2] = -event.state
+					
+			if event.code is 'ABS_RZ' and not( -5 < event.state < 5):
 				gimbleUp = int(-event.state * 5 / 255)
 			else:
 				if event.code is 'ABS_RZ' and (-5 < event.state and event.state < 5):
 					gimbleUp = 0
-			if event.code is 'ABS_Z' and not( -5 < event.state < 5):#claw down
-				#pos[2] = event.state
+			if event.code is 'ABS_Z' and not( -5 < event.state < 5):
 				gimbleDown = int(event.state * 5 /255)
 			else:
 				if event.code is 'ABS_Z' and (-5 < event.state and event.state < 5):
 					gimbleDown = 0
-			if event.code is 'BTN_EAST' and event.state is 1:#claw grab
+			if event.code is 'BTN_EAST' and event.state is 1:
 				overdrive = 1
 				print 'hello'
 			else:
 				if event.code is 'BTN_EAST': 
 					overdrive = 0
 					print 'hello'
-				
-			#if event.code is 'ABS_HAT0X':
-				#dpadRight = event.state
 			if event.code is 'ABS_HAT0Y':
 				tilt = -event.state
 				#invert to make up positive
