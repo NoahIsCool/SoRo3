@@ -1,0 +1,4 @@
+these are the projects to test a udp connection.
+run the "rover" executable before the "mc" one.
+The two programs should send one message back and forth. (the ip is currently set to localhost, should be easy to change)
+If it says there's an error binding to the port, make sure to change the port that didn't work in BOTH programs (the two projects are nearly identical)
