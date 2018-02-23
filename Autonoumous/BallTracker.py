@@ -3,6 +3,12 @@ import numpy as np
 import serial
 import _thread
 
+"""
+This code provides the rover with tennis ball tracking capabilities.
+When this code is ran, it looks for a tennis ball and, if found,
+    returns the bearing and distance of the tennis ball in respect
+    to the rover.
+"""
 
 class BallTracker:
     def __init__(self):
@@ -20,6 +26,13 @@ class BallTracker:
         self.pos_x = 0
         self.pos_y = 0
         self.ser = serial.Serial()
+        self.midpoint = 320
+        self.dpp = 82.1 / 640
+        # Angle left of center -> -(320 - pos_x)
+        # Angle right of center -> pos_x - 320
+        self.angle = 0.0
+
+        self.hasControl = False
 
         # start thread on pi
         _thread.start_new_thread(self.ball_tracking, ())
@@ -62,13 +75,16 @@ class BallTracker:
                 # pan right
                 self.pan = 2
             else:
+                # Don't pan
                 self.pan = 0
 
         if self.pos_y < 100 and self.found:
+            # If a ball is found and the ball is in the top 100 pixels of the image..
             self.tilt = self.tilt + 1
             self.tilt_moved = True
         else:
             if self.pos_y > 340 and self.found:
+                # IF the ball is in the bottom 100 pixels
                 self.tilt = self.tilt - 1
                 self.tilt_moved = True
             else:
@@ -83,8 +99,6 @@ class BallTracker:
             # 'q' to quit
         _thread.exit()
 
-        # print("no message")
-
     def ball_tracking(self):
         # Keep running until 'q' is pressed
 
@@ -97,7 +111,7 @@ class BallTracker:
         # capture video from camera
         camera = cv2.VideoCapture(0)
 
-        while self.thread_two_end:
+        while True:
             # Get an image from the camera
             ret, frame = camera.read()
 
@@ -154,6 +168,12 @@ class BallTracker:
                 self.pos_x = center_x
                 self.pos_y = center_y
 
+                # Find the angle of the ball from the center of the image.
+                if self.pos_x < 320:
+                    self.angle = -(320 - pos_x) * dpp
+                else:
+                    self.angle = (pos_x - 320) * dpp
+
             self.track()
 
             # Check if q is pressed
@@ -178,3 +198,15 @@ class BallTracker:
         if len(contours) > 0:
             r = cv2.boundingRect(contours[cont_index])
         return r, largest_contour
+
+    def hasFound():
+        return self.found
+
+    def setControl(control):
+        self.hasControl = control
+
+    def getControl():
+        return self.hasControl
+
+    def getAngle():
+        return self.angle

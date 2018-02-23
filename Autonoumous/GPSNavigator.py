@@ -1,8 +1,10 @@
 import math
 import argparse
+import BallTracker
 # things for GPS communication
 # make sure to run pip install sbp
 import _thread
+import serial
 from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client import Handler, Framer
 from sbp.navigation import SBP_MSG_POS_LLH, MsgPosLLH
@@ -36,6 +38,9 @@ class GPSNavigator:
         self.target_latitude = 0.0
         self.target_bearing = 0.0
         self.distance = 0.0
+        self.leg_distance = 0.0
+        self.hasControl = True
+        self.distance_traveled = 0.0
 
         # start navigation method
         _thread.start_new_thread(self.navigate(), ())
@@ -56,6 +61,9 @@ class GPSNavigator:
             for i in range(10):
                 msg, metadata = source.filter(SBP_MSG_POS_LLH).next()
                 self.history.append(msg)
+
+            # Search for a tennis ball
+            bt = BallTracker()
 
             # Start Navigation Loop
             while True:
@@ -84,6 +92,8 @@ class GPSNavigator:
                     self.target_longitude = math.radians(self.target_longitude)
 
                 self.distance = self.get_distance()
+                self.leg_distance = self.distance
+                self.distance_traveled = (self.leg_distance - self.distance) / self.leg_distance
                 theta = self.get_target_bearing()
                 delta_theta = self.get_rover_bearing() - theta
 
@@ -106,10 +116,30 @@ class GPSNavigator:
                 print("Bearing: ", math.degrees(theta), ", Distance: ", self.distance,
                       ",Turn:", math.degrees(delta_theta), "My Bearing:", math.degrees(rover_heading))
 
+                if self.distance_traveled > 0.75:
+                    found = bt.hasFound()
+                    if found is True:
+                        # Give control to the ball tracker
+                        bt.setControl(True)
+                        self.hasControl = False
+                    else:
+                        #Give control to the GPS code
+                        bt.setControl(False)
+                        self.hasControl = True
+
+                if self.hasControl is True:
+                    # Drive the rover via GPS
+                if bt.getControl() is True:
+                    # Drive the rover via Ball Tracker
+                    drive(bt.getAngle())
+
                 # If we're within 2 meters of the destination
                 if self.distance <= 2:
                     print("Distance is within 2 meters of the destination.")
-                    # TODO: put a break to say we are finished
+                    # A tennis ball wasn't found on the way to the destination.
+                    # Signal that the rover has reached the target destination.
+                    # Now search for the tennis ball.
+                    
 
     def get_gps_coordinates(self):
         # Convert the rover target_latitude and target_longitude to radians
@@ -166,6 +196,15 @@ class GPSNavigator:
                            math.cos(self.last_rover_latitude) * math.sin(self.rover_latitude) -
                            math.sin(self.last_rover_latitude) * math.cos(self.rover_latitude) * math.cos(delta_lon))
         return theta
+
+    def drive(angle):
+        # Send value array to arduino through serial here
+        if angle < -2:
+            # Turn left
+        if angle > 2:
+            # Turn right
+        else:
+            # Drive Forward
 
     @staticmethod
     def get_args():
