@@ -38,16 +38,18 @@ def main():
     # handler is an iterable to read the messages
     with Handler(Framer(driver.read, None, verbose=True)) as source:
         # reads all the messages in a loop as they are received
-        for i in range(10):
+        for i in range(1, 10):
             msg, metadata = source.filter(SBP_MSG_POS_LLH).next()
-            history.append(msg)
+            history[i] = msg
         while True:
             msg, metadata = source.filter(SBP_MSG_POS_LLH).next()
-
+            for i in range(1, 10):
+                history[i-1] = history [i]
+            history[9] = msg
             # Shouldnt We need an elevation?.. that's msg.height
             # int of acuracy is [h/v]_acuracy also there is n_sats
-            last_lat = rover_lat
-            last_long = rover_long
+            last_lat = math.radians(history[0].lat)
+            last_long = math.radians(history[0].lon)
             rover_lat = math.radians(msg.lat)
             rover_long = math.radians(msg.lon)
 
@@ -140,16 +142,15 @@ def get_distance(longitude, latitude, rover_lat, rover_long):
 
 
 def get_my_bearing(rover_lat, rover_long, last_lat, last_long):
-    # FIX THIS:
-    # return math.atan2((rover_lat - last_long)/( roverLong - last_long))
+    
+    # return math.atan2((rover_lat - last_lat)/( roverLong - last_long))
     # Calculate change in Latitude
-    # deltaLat = rover_lat - last_lat
+    deltaLat = rover_lat - last_lat
     # Calculate change in Longitude
     delta_lon = rover_long - last_long
     # Bearing, represented as nearest offset from North. (+/-180 degrees from North)
     theta = math.atan2(math.sin(delta_lon) * math.cos(rover_lat),
-                       math.cos(last_lat) * math.sin(rover_lat) - math.sin(last_lat) * math.cos(rover_lat) * math.cos(
-                           delta_lon))
+                       math.cos(last_lat) * math.sin(rover_lat) - math.sin(last_lat) * math.cos(rover_lat) * math.cos( delta_lon))
     return theta
 
 
