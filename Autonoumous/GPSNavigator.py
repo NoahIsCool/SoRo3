@@ -162,7 +162,7 @@ class GPSNavigator:
                         self.speed = 0
                     else:
                         self.speed = 25
-    
+
     def get_gps_coordinates(self):
         # Convert the rover target_latitude and target_longitude to radians
         lat1 = math.radians(self.rover_latitude)
@@ -170,10 +170,9 @@ class GPSNavigator:
         bearing = math.radians(float(self.target_bearing))
 
         # Takes the lat1, lon2, distance, and target_bearing does the math needed
-        lat2 = math.asin(math.sin(lat1) * math.cos(self.distance / self.RADIUS_OF_EARTH) +
-                         math.cos(lat1) * math.sin(self.distance / self.RADIUS_OF_EARTH) * math.cos(bearing))
-        lon2 = lon1 + math.atan2(math.sin(bearing) * math.sin(self.distance / self.RADIUS_OF_EARTH) * math.cos(lat1),
-                                 math.cos(self.distance / self.RADIUS_OF_EARTH) - math.sin(lat1) * math.sin(lat2))
+	#AKA, determins the new lat and long in reference to the previous lat and long and the bearing
+        lat2 = math.asin(math.sin(lat1) * math.cos(self.distance / self.RADIUS_OF_EARTH) + math.cos(lat1) * math.sin(self.distance / self.RADIUS_OF_EARTH) * math.cos(bearing))
+        lon2 = lon1 + math.atan2(math.sin(bearing) * math.sin(self.distance / self.RADIUS_OF_EARTH) * math.cos(lat1), math.cos(self.distance / self.RADIUS_OF_EARTH) - math.sin(lat1) * math.sin(lat2))
 
         # Change the target_latitude and target_longitude to degrees
         lat2 = math.degrees(lat2)
@@ -188,9 +187,12 @@ class GPSNavigator:
         # Calculate change in Longitude
         delta_lon = self.target_longitude - self.rover_longitude
         # Haversine formula for distance
+	#https://en.wikipedia.org/wiki/Haversine_formula
+	#similar to the normal distance formula but for spherical coordinates.
+	#contrary to popular belief, the earth is round so we have to use spherical and not geometrical
         a = math.sin(delta_lat / 2) * math.sin(delta_lat / 2) + \
-            math.cos(self.rover_latitude) * math.cos(self.target_latitude) * math.sin(delta_lon / 2) * \
-            math.sin(delta_lon / 2)
+            math.cos(self.rover_latitude) * math.cos(self.target_latitude) * \
+            math.sin(delta_lon / 2) * math.sin(delta_lon / 2)
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         d = self.RADIUS_OF_EARTH * c
         return d
