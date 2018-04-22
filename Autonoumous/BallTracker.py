@@ -59,18 +59,18 @@ class BallTracker:
         for i in range(0, 10):
             try:
                 #
-                self.ser.port = '../../../../../dev/ttyACM' + str(i)
+                self.ser.port = '/dev/ttyACM' + str(i)
                 self.ser.timeout = 1
                 self.ser.open()
-                print('../../../../../dev/ttyACM' + str(i))
+                print('/dev/ttyACM' + str(i))
                 break
             except:
                 try:
                     #
-                    self.ser.port = '../../../../../dev/ttyUSB' + str(i)
+                    self.ser.port = '/dev/ttyUSB' + str(i)
                     self.ser.timeout = 1
                     self.ser.open()
-                    print('../../../../../dev/ttyUSB' + str(i))
+                    print('/dev/ttyUSB' + str(i))
                     break
                 except:
                     try:
