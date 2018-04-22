@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import serial
-import _thread
+import thread
+import math
 
 """
 This code provides the rover with tennis ball tracking capabilities.
@@ -31,11 +32,24 @@ class BallTracker:
         # Angle left of center -> -(320 - pos_x)
         # Angle right of center -> pos_x - 320
         self.angle = 0.0
-
+        self.distance = 0.0
         self.hasControl = False
 
+        #HSV stuff
+        trackbar_data = [28, 40, 83, 255, 72, 255, 0, 8, 9, 10]
+        self.h_lo = trackbar_data[0]
+        self.h_hi = trackbar_data[1]
+        self.s_lo = trackbar_data[2]
+        self.s_hi = trackbar_data[3]
+        self.v_lo = trackbar_data[4]
+        self.v_hi = trackbar_data[5]
+        self.e_itr = trackbar_data[6]
+        self.d_itr = trackbar_data[7]
+        self.e_box = trackbar_data[8]
+        self.d_box = trackbar_data[9]
+
         # start thread on pi
-        _thread.start_new_thread(self.ball_tracking, ())
+        thread.start_new_thread(self.ball_tracking, ())
 
     def connect(self):
         # Open serial port
@@ -44,24 +58,27 @@ class BallTracker:
         # look for a serial port in use
         for i in range(0, 10):
             try:
-                print('../../../../../dev/ttyACM' + str(i))
+                #
                 self.ser.port = '../../../../../dev/ttyACM' + str(i)
                 self.ser.timeout = 1
                 self.ser.open()
+                print('../../../../../dev/ttyACM' + str(i))
                 break
             except:
                 try:
-                    print('../../../../../dev/ttyUSB' + str(i))
+                    #
                     self.ser.port = '../../../../../dev/ttyUSB' + str(i)
                     self.ser.timeout = 1
                     self.ser.open()
+                    print('../../../../../dev/ttyUSB' + str(i))
                     break
                 except:
                     try:
-                        print('COM' + str(i))
+                        #
                         self.ser.port = 'COM' + str(i)
                         self.ser.timeout = 1
                         self.ser.open()
+                        print('COM' + str(i))
                         break
                     except:
                         continue
@@ -97,7 +114,7 @@ class BallTracker:
             self.ser.write(self.my_string + '\n')
             print(self.my_string + '{' + self.ser.readline() + '}')
             # 'q' to quit
-        _thread.exit()
+        thread.exit()
 
     def ball_tracking(self):
         # Keep running until 'q' is pressed
@@ -106,7 +123,7 @@ class BallTracker:
         self.connect()
 
         # start communication thread
-        _thread.start_new_thread(self.message, ())
+        #thread.start_new_thread(self.message, ())
 
         # capture video from camera
         camera = cv2.VideoCapture(0)
@@ -118,41 +135,26 @@ class BallTracker:
             # Convert frame from BGR to HSV, store it in frame2
             frame2 = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-            # Get the values of all of the sliders
-            # TODO: Get Trackbar Data
-            # TEMP TRACKBAR DATA ARRAY:
-            trackbar_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-            h_lo = trackbar_data[0]
-            h_hi = trackbar_data[1]
-            s_lo = trackbar_data[2]
-            s_hi = trackbar_data[3]
-            v_lo = trackbar_data[4]
-            v_hi = trackbar_data[5]
-            e_itr = trackbar_data[6]
-            d_itr = trackbar_data[7]
-            e_box = trackbar_data[8]
-            d_box = trackbar_data[9]
 
             # Create arrays for the lower and upper HSV values
-            lower_hsv = np.array([h_lo, s_lo, v_lo])
-            upper_hsv = np.array([h_hi, s_hi, v_hi])
+            lower_hsv = np.array([self.h_lo, self.s_lo, self.v_lo])
+            upper_hsv = np.array([self.h_hi, self.s_hi, self.v_hi])
 
             # Use the inRange function to filter the be submerged by watHSV values
             frame3 = cv2.inRange(frame2, lower_hsv, upper_hsv)
 
             # Morphological transformations
-            if e_itr < 1 or d_itr < 1 or e_box < 2 or d_box < 2:
+            if self.e_itr < 1 or self.d_itr < 1 or self.e_box < 2 or self.d_box < 2:
                 combined_img = frame3
             else:
-                erosion = cv2.erode(frame3, (e_box, e_box), iterations=e_itr)
-                dilation = cv2.dilate(erosion, (e_box, e_box), iterations=d_itr)
+                erosion = cv2.erode(frame3, (self.e_box, self.e_box), iterations=e_itr)
+                dilation = cv2.dilate(erosion, (self.e_box, self.e_box), iterations=d_itr)
                 combined_img = dilation
 
             # Locates the Ball
             location, area = self.find_ball(combined_img)
             x, y, w, h = location  # top_left_x, top_left_y, width, height
-
+            
             # identify and track if large enough
             if (w * h) < 10:
                 self.found = False
@@ -170,10 +172,11 @@ class BallTracker:
 
                 # Find the angle of the ball from the center of the image.
                 if self.pos_x < 320:
-                    self.angle = -(320 - pos_x) * dpp
+                    self.angle = -(320 - center_x) * self.dpp
                 else:
-                    self.angle = (pos_x - 320) * dpp
-
+                    self.angle = (center_x - 320) * self.dpp
+                self.distance = .0686 / (2.0 * math.tan(math.radians(w * self.dpp /2)))
+                                                         
             self.track()
 
             # Check if q is pressed
@@ -199,14 +202,14 @@ class BallTracker:
             r = cv2.boundingRect(contours[cont_index])
         return r, largest_contour
 
-    def hasFound():
+    def hasFound(self):
         return self.found
 
     def setControl(control):
         self.hasControl = control
 
-    def getControl():
+    def getControl(self):
         return self.hasControl
 
-    def getAngle():
+    def getAngle(self):
         return self.angle
