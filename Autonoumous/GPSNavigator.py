@@ -25,6 +25,7 @@ This code then takes the Lat/Lon values and uses the Haversine formula to calcul
 
 
 class GPSNavigator:
+    #in meters...kinda important
     RADIUS_OF_EARTH = 6371000
 
     def __init__(self):
@@ -80,8 +81,8 @@ class GPSNavigator:
 
                 # Shouldn't We need an elevation?.. that's msg.height
                 # int of accuracy is [h/v]_accuracy also there is n_sats
-                self.last_rover_latitude = self.rover_latitude
-                self.last_rover_longitude = self.rover_longitude
+                self.last_rover_latitude = history[0].lat
+                self.last_rover_longitude = history[0].lon
                 self.rover_latitude = math.radians(msg.lat)
                 self.rover_longitude = math.radians(msg.lon)
 
@@ -94,7 +95,7 @@ class GPSNavigator:
                 # If target_bearing and distance were supplied, get target_latitude and target_longitude in degrees
                 else:                    
                     self.distance = float(self.distance)
-                    self.target_bearing = self.get_bearing(self.target_longitude,self.target_latitude,self.rover_longitude,self.rover_latitude)
+                    self.target_bearing = self.get_bearing(self.target_longitude, self.target_latitude, self.rover_longitude, self.rover_latitude)
                     self.target_latitude, self.target_longitude = self.get_gps_coordinates()
                     self.target_latitude = math.radians(self.target_latitude)
                     self.target_longitude = math.radians(self.target_longitude)
@@ -103,8 +104,8 @@ class GPSNavigator:
                 self.distance = self.get_distance()
                 self.leg_distance = self.distance
                 self.distance_traveled = (self.leg_distance - self.distance) / self.leg_distance
-                theta = self.get_bearing(self.target_longitude,self.target_latitude,self.rover_longitude,self.rover_latitude)
-                delta_theta = self.get_bearing(self.rover_longitude,self.rover_latitude,self.last_rover_longitude,self.last_rover_latitude) - theta
+                theta = self.get_bearing(self.target_longitude, self.target_latitude, self.rover_longitude, self.rover_latitude)
+                delta_theta = self.get_bearing(self.rover_longitude, self.rover_latitude, self.last_rover_longitude, self.last_rover_latitude) - theta
 
                 # Get velocity in North, East, Down format
                 msg2, metadata = source.filter(SBP_MSG_VEL_NED).next()
@@ -118,13 +119,7 @@ class GPSNavigator:
                 # Calculate rover_heading using the atan2 function
                 rover_heading = math.atan2(vel__east, vel__north)
 
-                # TODO: turn(target_bearing) # something like: if math.abs(target_bearing) > tolerance
-                # TODO: then turn else drive (distance) drive(distance)
-
-                # Need to fix this to output the proper value of theta
-                #print("Bearing: ", math.degrees(theta), ", Distance: ", self.distance,
-                #     ",Turn:", math.degrees(delta_theta), "My Bearing:", math.degrees(rover_heading))
-                #print "Ball found: " + str(bt.hasFound()) + ", ball angle: " + str(bt.getAngle()) + ", ball dist: " + str(bt.distance)
+		#changes the angle of the rover to center the tennis ball
                 if self.distance_traveled > 0.75:
                     found = bt.hasFound()
                     if found is True:
@@ -198,7 +193,7 @@ class GPSNavigator:
         return d
 
     #calculates the change in latitude over the change in longitude
-    #targets are the current long and lat and last is the priveous long and lat
+    #targets are the desired lat and long and last is the current lat and long
     def get_bearing(self,target_longitude,target_latitude,last_longitude,last_latitude):
 	#someone found this online and it calcuates the bearing. Essentually black magic
 	delta_lon = target_longitude - last_longitude
