@@ -120,10 +120,10 @@ void loop() {
                     elbow_pos = uint8_t(incomingByte);
                     break;
                 case 3:
-                    wristTheta_dest = uint8_t(incomingByte);// converts from int to float. change the transmission
+                    wristTheta_dest = (incomingByte);// converts from int to float. change the transmission
                     break;
                 case 4:
-                    wristPhi_dest = uint8_t(incomingByte);// TODO change the transmission to be a float for precision
+                    wristPhi_dest = (incomingByte);// TODO change the transmission to be a float for precision
                     break;
                 case 5:
                     clawL_pos = uint8_t(incomingByte);
@@ -134,15 +134,14 @@ void loop() {
                 case 7: // hash (last byte recieved in transmission)
                     serialHash = incomingByte;
                     inTransmission = false;
-                    myHash = (shoulder_pos + elbow_pos + wristTheta_dest + wristPhi_dest + clawL_pos + clawR_pos) / 4;
+                    myHash = (shoulder_pos + elbow_pos + wristTheta_dest + wristPhi_dest + clawL_pos + clawR_pos) / 6;
                     if (myHash == serialHash) {
-                        sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d", shoulder_pos, elbow_pos, wristTheta_dest,
-                                wristPhi_dest, clawL_pos, clawR_pos);
+                        sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d", shoulder_pos, elbow_pos, (int)wristTheta_dest,
+                                (int)wristPhi_dest, clawL_pos, clawR_pos);
                         Serial.println(serResp);
                         updateServos();
                     } else {
-                        sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d!!!!!!!", shoulder_pos, elbow_pos, wristTheta_dest,
-                                wristPhi_dest, clawL_pos, clawR_pos);
+                        sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d!!!!!!!", shoulder_pos, elbow_pos, wristTheta_dest,wristPhi_dest, clawL_pos, clawR_pos);
                         Serial.println(serResp);
                     }
                     break;
