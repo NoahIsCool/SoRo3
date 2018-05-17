@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html style="height: 100%; width: 100%; background: transparent;">
+<head>
+	<script src="http://maps.googleapis.com/maps/api/js"></script>
+	<script>
+		/* 
+		Stores the history of the locations added to the map.
+		They are added with push(), so the newest location is at [length - 1].
+		*/
+		var locations = [];
+		/*
+		The map object
+		*/
+		var map = null;
+		/*
+		Stores the markers added to the map.
+		They are added with increasing ID numbers, so this array will become sparse as
+		markers are added and removed.
+		*/
+		var markers = [];
+		/* 
+		Stores the history of the heading markers added to the map.
+		They are added with push(), so the newest heading marker is at [length - 1].
+		Older heading markers are hidden from the map, but a record of them is still
+		kept in this array to roll back location state if needed.
+		*/
+		var headingMarkers = [];
+		/*
+		Stores the history of polylines connecting known locations added to the map.
+		They are added with push(), so the newest polyline is at [length - 1].
+		The size of this array will always be one less than that of locations[] and headingMarkers[]
+		because the first polyline is added only after two locations are recorded.
+		*/
+		var headingPolylines = [];
+		/* 
+		Stores the ID of the next marker
+		*/
+		var nextMarkerId = 0;
+		/*
+		Stores the index of the currently visible location marker.
+		This is usually locations.length - 1, but can be less than that if the location history has been rolled back
+		*/
+		var currentLocation = -1;
+
+		/* 
+		Initializes the map with its default view
+		 */
+		function _initialize() {
+			// Initialize the map with an overview of the US
+			// centered on Norman
+			var mapProp = {
+				center: new google.maps.LatLng(35.22,-97.44),
+				zoom: 4,
+				streetViewControl: false,
+				scaleControl: true,
+				overviewMapControl: false,
+				mapTypeId: google.maps.MapTypeId.HYBRID
+			};
+			map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+		}
+
+		/* 
+		Repositions and zooms the map to the last known location.
+		Can be called by the host application, but also used internally.
+		 */
+		function recenter() {
+			if (locations.length > 0) {
+				// Recenter the map to the location
+				var mapProp = {
+					center: locations[locations.length - 1],
+					zoom: 20,
+					streetViewControl: false,
+					scaleControl: true,
+					overviewMapControl: false,
+					mapTypeId: google.maps.MapTypeId.HYBRID
+				};
+				map.setOptions(mapProp);
+			}
+		}
+
+		/* 
+		Called by the host application.
+		Updates the current position on the map, and adds a heading indicator and
+		track polyline for it.
+		 */
+		function updateLocation(lat, long, heading) {
+			locations.push(new google.maps.LatLng(lat, long));
+			if (locations.length > 1) {
+				// Add a polyline from the last location to the current one
+				headingPolylines.push(
+					new google.maps.Polyline({
+						path: [locations[locations.length - 2], locations[locations.length - 1]],
+					    geodesic: true,
+					    strokeColor: 'red',
+					    strokeOpacity: 1.0,
+					    strokeWeight: 2
+					})
+				);
+			}
+			if (locations.length == 1) {
+				// This is the first location update, recenter the map
+				recenter();
+			}
+			// Add a heading marker
+			headingMarkers.push(
+				new google.maps.Marker({
+					position: newLocation,
+					icon: {
+						path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+					    fillColor: 'red',
+					    fillOpacity: 1,
+					    scale: 4,
+					    rotation: heading,
+						strokeColor: 'white',
+						strokeWeight: 2
+					}
+				})
+			);
+			if (currentLocation == locations.length - 2) {
+				// The location history has not been rolled back, so we should make this new
+				// location visible immediately
+				currentLocation++;
+				headingMarkers[currentLocation].setMap(map);
+				if (currentLocation > 0) {
+                    headingPolylines[currentLocation - 1].setMap(map);
+				}
+			}
+		}
+
+		/* 
+		Called by the host application.
+		Adds a marker to the specified location on the map, and returns and ID
+		number that can be used to remove this marker later.
+		 */
+		function addMarker(lat, long, type) {
+			var location = new google.maps.LatLng(lat, long);
+			var color, path;
+			switch(type) {
+				case "blue-circle":
+					color = 'blue';
+					path = google.maps.SymbolPath.CIRCLE;
+					break;
+				case "red-circle":
+					color = 'red';
+					path = google.maps.SymbolPath.CIRCLE;
+					break;
+				case "orange-circle":
+					color = 'orange';
+					path = google.maps.SymbolPath.CIRCLE;
+					break;
+				case "purple-circle":
+					color = 'purple';
+					path = google.maps.SymbolPath.CIRCLE;
+					break;
+				case "green-circle":
+					color = 'green';
+					path = google.maps.SymbolPath.CIRCLE;
+					break;
+				case "yellow-circle":
+					color = 'yellow';
+					path = google.maps.SymbolPath.CIRCLE;
+					break;
+			}
+			markers[nextMarkerId] = new google.maps.Marker({
+				position: location,
+				icon: {
+					path: path,
+					fillColor: color,
+					fillOpacity: 1,
+					scale: 6,
+					strokeColor: 'white',
+					strokeWeight: 2
+				},
+				map: map
+			});
+			return nextMarkerId++;
+		}
+
+		/*
+		Called by the host application.
+		Removes a previously placed marker by its marker ID.
+		*/
+		function removeMarker(markerID) {
+			if (markers[markerID] !== null) {
+				markers[markerID].setMap(null);
+				markers[markerID] = null;
+			}
+		}
+
+		/*
+		Called by the host application.
+		Resets and forgets all previous locations. This cannot be undone 
+		as it does not preserve the location history.
+		*/
+		function resetLocations() {
+			for (var i = 0; i < headingMarkers.length; i++) {
+				headingMarkers[i].setMap(null);
+			}
+			headingMarkers = [];
+			locations = [];
+			for (var i = 0; i < headingPolylines.length; i++) {
+				headingPolylines[i].setMap(null);
+			}
+			headingPolylines = [];
+			currentLocation = -1;
+		}
+		
+		
+		/*
+		Called by the host application.
+		Restores the map's view to an earlier point in time without destroying any location history.
+		
+		rewind(0) would restore the map to how it looked after the first location was set,
+		rewind(n) would restore the map to how it looked after the first n locations were set.
+		
+		To restore the map to how it looks currently, with all locations, call fastForward(). Note, that
+		after rewind() is called, any new locations added to the map will not get automatically displayed since
+		the map is stuck at a point in the past. This behavior will be restored once fastForward() is called.
+		*/
+		function rewind(index) {
+			if (index >= locations.length - 1) {
+				fastForward();
+			}
+			else {
+				// Hide already visible heading marker, if exists
+				if (currentLocation >= 0) {
+					headingMarkers[currentLocation].setMap(null);
+				}
+				// Show new heading marker, if exists
+				if (index >= 0) {
+					headingMarkers[index].setMap(map);
+				}
+				// Show new polylines between old currentLocation and new currentLocation, if any exist
+				for (var i = currentLocation - 1 > 0 ? currentLocation - 1 : 0; i < index - 1; i++) {
+					headingPolylines[i].setMap(map);
+				}
+				// Hide polylines newer than new currentLocation, if any exist
+				for (var i = index - 1 > 0 ? index - 1 : 0; i < currentLocation - 1; i++) {
+					headingPolylines[i].setMap(null);
+				}
+				currentLocation = index;				
+			}
+		}
+		
+		/*
+		Called by the host application.
+		Restores the map's view to its current, real-time state
+		*/
+		function fastForward() {
+			for (var i = currentLocation; i < locations.length - 1; i++) {
+				headingMarkers[i].setMap(null);
+				headingPolylines[i].setMap(map);
+			}
+			currentLocation = locations.length - 1;
+			headingMarkers[currentLocation].setMap(map);
+		}
+
+		google.maps.event.addDomListener(window, 'load', _initialize);
+	</script>
+</head>
+
+<body style="height: 100%; width: 100%; overflow: hidden;">
+	<div id="googleMap" style="height:100%; width: 100%; left: -8px; top: -8px;"></div>
+</body>
+</html>

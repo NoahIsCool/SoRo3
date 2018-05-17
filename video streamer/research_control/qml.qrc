@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/ControlWindow.qml</file>
+        <file>qml/HudPower.qml</file>
+        <file>qml/HudLatency.qml</file>
+        <file>qml/HudBackground.qml</file>
+        <file>qml/CommentsWindow.qml</file>
+        <file>qml/ConfirmRecordStopDialog.qml</file>
+        <file>qml/RecordButton.qml</file>
+        <file>qml/ToolbarButton.qml</file>
+        <file>qml/OnWindowCloseDialog.qml</file>
+        <file>qml/RecordingTimer.qml</file>
+        <file>qml/HudOrientationSide.qml</file>
+        <file>qml/HudOrientationBack.qml</file>
+        <file>qml/MainWindow.qml</file>
+        <file>qml/HudCompass.qml</file>
+    </qresource>
+</RCC>
