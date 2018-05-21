@@ -1,33 +1,45 @@
 #include "socket.h"
-// my laptop is 192.168.1.9
-// soro desktop is 192.168.1.5
+// craptop is 10.0.0.3 (on wifi)
+// soro desktop is 192.168.1.100
+// mission-control-2 is 10.0.0.10
+// mission-control-1 is 10.0.0.4
 
 socket::socket(QObject *parent) : QObject(parent)
 {
     socketIn = new QUdpSocket(this);
-    socketOut = new QUdpSocket(this);
-    if(socketIn->bind(QHostAddress("192.168.1.5"), 1237))
-    //if(socketIn->bind(QHostAddress::LocalHost,1237))
+    socketOut = new QUdpSocket(this);//"10.0.0.10"), 1237))
+    if(socketIn->bind(QHostAddress("10.0.0.10"), 1237))
     {
         qDebug() << "Bound to port 1237";
     } else {
         qDebug() << "Error binding to port:" << socketIn->errorString();
     }
     connect(socketIn, SIGNAL(readyRead()), this, SLOT(readUDP()));
+
+    resetTimer = new QTimer(); // this timer is used to stop sending data for a second when this computer recieves -124 at the start of a udp message. To be used when communications become unstable.
+
+    /*
+    // request data from accelerometer
+    //eventually, this can just be put on a timer for every 5 seconds or something
+    QByteArray buffer; // sends: -126 (start), 4 (device id), 192.168.1.100 (ip), 1237 (port)
+    buffer.append(char(-126));
+    buffer.append(uint8_t(4));
+    buffer.append(uint8_t(192));
+    buffer.append(uint8_t(168));
+    buffer.append(uint8_t(1));
+    buffer.append(uint8_t(100));
+    buffer.append(uint8_t(4));
+    buffer.append(uint8_t(213));
+    socketOut->writeDatagram(buffer, QHostAddress("192.168.1.102"), 1234);
+    */
 }
 
 void socket::sendUDP(QByteArray Data)
 {
-    //QByteArray Data;
-    //Data.append(message);
-
-    // Sends the datagram datagram
-    // to the host address and at port.
-    // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
-    //                      const QHostAddress & host, quint16 port)
-    socketOut->writeDatagram(Data, QHostAddress("192.168.1.13"), 1234);
-    //socketOut->writeDatagram(Data, QHostAddress::LocalHost, 1234);
-
+    if(!resetTimer->isActive())
+    {
+        socketOut->writeDatagram(Data, QHostAddress("127.0.0.1"), 1234);//"192.168.1.102"), 1234);
+    }
 }
 
 void socket::readUDP()
@@ -37,18 +49,20 @@ void socket::readUDP()
     buffer.resize(socketIn->pendingDatagramSize());
 
     QHostAddress sender;
-    quint16 senderPort;
+    quint16 senderPort; //can probably take sender and senderPort out
 
-    // qint64 QUdpSocket::readDatagram(char * data, qint64 maxSize,
-    //                 QHostAddress * address = 0, quint16 * port = 0)
-    // Receives a datagram no larger than maxSize bytes and stores it in data.
-    // The sender's host address and port is stored in *address and *port
-    // (unless the pointers are 0).
+    socketIn->readDatagram(buffer.data(), buffer.size(), &sender, &senderPort);
 
-    socketIn->readDatagram(buffer.data(), buffer.size(),
-                         &sender, &senderPort);
+    for(int i = 0; i < buffer.size(); i++)
+    {
+        int8_t temp = buffer.at(i);
+        printf("%d,\t", temp);
+    }
+    printf("\n");
 
-    qDebug() << "Message from: " << sender.toString();
-    qDebug() << "Message port: " << senderPort;
-    qDebug() << "Message: " << buffer;
+    if(buffer.at(0) == -124)
+    {
+        resetTimer->start(1000);
+    }
+    //emit UDPrecived(buffer);
 }
