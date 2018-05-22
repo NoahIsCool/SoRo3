@@ -12,12 +12,14 @@ VideoStreamer::VideoStreamer(QString configFile){
     // create gstreamer command
     /*
      * incase you are wondering, this is here so you can enter stuff into a file like this
+     * (for now) clientAddress=192.168.1.183
      * frontCamera=video0
      * backCamera=video1
      * clawCamera=video2
      * and it will be parsed and return the device needed.
      */
     ConfigReader reader(configFile);
+    QString clientAddress = "192.168.1.183";
     QString frontDevice = "NOT_FOUND";
     QString backDevice = "NOT_FOUND";
     QString clawDevice = "NOT_FOUND";
@@ -25,11 +27,16 @@ VideoStreamer::VideoStreamer(QString configFile){
         frontDevice = reader.find("frontCamera");
         backDevice = reader.find("backCamera");
         clawDevice = reader.find("clawCamera");
+        clientAddress = reader.find("clientAddress");
     }else{
         QFile test("/dev/video0");
         if(test.exists()){
             frontDevice = "video0";
         }
+    }
+    //if its not entered then it defaults to this address
+    if(clientAddress == "NOT_FOUND"){
+        clientAddress = "192.168.1.183";
     }
     //eventually want to load this from the config file but for now, just enter it
     //this loads the default profile. Unless you have a damn good reason, dont use a customized version
@@ -38,39 +45,39 @@ VideoStreamer::VideoStreamer(QString configFile){
 
     if(frontDevice != "NOT_FOUND"){
         LOG_I(LOG_TAG,"found Front Device!");
-        QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=192.168.1.183 port=" + QString::number(FRONT_CAMERA_PORT);
+        QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
         //binStr += "! textoverlay text=\"Hello\" ! ffmpegcolorspace !";
         frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
         QGlib::connect(frontPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
         LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
         frontPipeline->bus()->addSignalWatch();
         QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(FRONT_CAMERA_PORT) +" caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
-        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str);
+        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
         frontPipeline->setState(QGst::StatePlaying);
     }
 
     if(backDevice != "NOT_FOUND"){
         LOG_I(LOG_TAG,"found Back Device!");
-        QString binStr = "v4l2src device=/dev/" + backDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=192.168.1.183 port=" + QString::number(BACK_CAMERA_PORT);
+        QString binStr = "v4l2src device=/dev/" + backDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
         backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
         QGlib::connect(backPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
-        LOG_I(LOG_TAG, "Created gstreamer bin " + binStr);
+        LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
         backPipeline->bus()->addSignalWatch();
         QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(BACK_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
-        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str);
+        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
         backPipeline->setState(QGst::StatePlaying);
     }
 
     if(clawDevice != "NOT_FOUND"){
         LOG_I(LOG_TAG,"found Claw Device!");
-        QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=192.168.1.13 port=" + QString::number(CLAW_CAMERA_PORT);
+        QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
         clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
         QGlib::connect(clawPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
         LOG_I(LOG_TAG,"\n\n");
-        LOG_I(LOG_TAG, "Created gstreamer bin " + binStr);
+        LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
         clawPipeline->bus()->addSignalWatch();
         QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(CLAW_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
-        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str);
+        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
         clawPipeline->setState(QGst::StatePlaying);
     }
 }
