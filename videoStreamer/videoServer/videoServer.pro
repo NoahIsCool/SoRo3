@@ -21,13 +21,15 @@ SOURCES += \
     videostreamer.cpp \
     gstreamerutil.cpp \
     logger.cpp \
-    configreader.cpp
+    configreader.cpp \
+    socket.cpp
 
 HEADERS += \
     videostreamer.h \
     gstreamerutil.h \
     logger.h \
-    configreader.h
+    configreader.h \
+    socket.h
 
 PKGCONFIG += QtGStreamer-1.0 Qt5GLib-2.0
 

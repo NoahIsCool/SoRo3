@@ -1,4 +1,7 @@
-#include <QCoreApplication>
+﻿#include <QCoreApplication>
+#include <thread>
+
+#include "socket.h"
 #include "videostreamer.h"
 
 int main(int argc, char *argv[])
