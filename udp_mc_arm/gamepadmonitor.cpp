@@ -20,11 +20,8 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
     /*connect(m_gamepad, &QGamepad::axisLeftXChanged, this, [](double value){
         qDebug() << "Left X" << value;
     });*/
-    connect(m_gamepad,SIGNAL(axisLeftYChanged(double)), this, SLOT(onYAxis(double)));
-
-    /*connect(m_gamepad, &QGamepad::axisRightXChanged, this, [](double value){
-        qDebug() << "Right X" << value;
-    });*/
+    connect(m_gamepad, SIGNAL(axisLeftXChanged(double)), this, SLOT(onXAxis(double)));
+    connect(m_gamepad, SIGNAL(axisLeftYChanged(double)), this, SLOT(onYAxis(double)));
     connect(m_gamepad, SIGNAL(axisRightYChanged(double)), this, SLOT(onRYAxis(double)));
     connect(m_gamepad, SIGNAL(axisRightXChanged(double)), this, SLOT(onRXAxis(double)));
     connect(m_gamepad, SIGNAL(buttonBChanged(bool)), this, SLOT(onButtonB(bool)));
@@ -65,6 +62,8 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
         qDebug() << "Button Guide" << pressed;
     });*/
 
+    clawL = 75;
+    clawR = 150;
     udpTimer = new QTimer();
     connect(udpTimer, SIGNAL(timeout()), this, SLOT(sendUDP()));
     udpTimer->start(100);
@@ -72,6 +71,11 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
 
 void GamepadMonitor::message(QByteArray arr){
     printf(arr);
+}
+
+void GamepadMonitor::onXAxis(double value){
+    left_x_axis = value;
+
 }
 
 void GamepadMonitor::onYAxis(double value){
@@ -84,11 +88,10 @@ void GamepadMonitor::onRYAxis(double value){
 }
 
 void GamepadMonitor::onRXAxis(double value){
-    //qDebug() << value << endl;
-    if (value > .1 || value < -.1){
-        phi = value;
-    }
-    else phi = 0;
+    //printf("hello");
+    phi = value;
+    //qDebug() << phi;
+    //else phi = 0;
 }
 
  void GamepadMonitor::onButtonB(bool pressed){
@@ -100,29 +103,20 @@ void GamepadMonitor::onRXAxis(double value){
         clawL = 75.0;
         clawR = 150.0;
      }
+     sendUDP();
  }
 
 void GamepadMonitor::onL2(double value){
-    /*
-    //if ( !(-0.05 < value && value < 0.05) ){
-        gimbleRL = round(value * 5 );//*gamepads.begin() ???
-   // }else{
-     //       gimbleRL = 0;
-   // }
-    //printVals();
-    //sendUDP();
-    */
-    if( wrist_angle > 0 && value > .1)
+
+    //if( wrist_angle > 0 && value > .1)
     theta = -value;
-    else theta = 0;
+    //else theta = 0;
 
 
 }
 
 void GamepadMonitor::onR2(double value){
-    // old claw code, needed to use this for the wrist
-    //clawL = 180 - round(value * 100.0);
-   // clawR = 80 - round(value * 50.0);
+
     //if(value > .1)
     theta = value;
     //else theta = 0;
@@ -154,21 +148,27 @@ void GamepadMonitor::onButtonDown(bool pressed){
 }
 
 void GamepadMonitor::sendUDP(){
-    //these units are in mm
-    //max actuator length: 345.948mm = 145
-    //min actuator length: 246.126mm = 35
+    // ***** all numbers are now in INCHES *****
 
-    //do the calculations here and pray that they're correct
-    float temp_u = coord_u-(left_y_axis*5)*(abs(left_y_axis) > .05);
-    float temp_v = coord_v-(right_y_axis*5)*(abs(right_y_axis) > .05);
+    // control the coordinate based on controller input
+    // this is sloppy and should really be updated (its a number times a boolean lol)
+    // the number 0.2 below means its top speed is 0.2 inches/second
+    float temp_u = coord_u+(left_y_axis*0.2)*(abs(left_y_axis) > .05);
+    float temp_v = coord_v-(right_y_axis*0.2)*(abs(right_y_axis) > .05);
+
+    // calculate the length of each actuator based on the cartesian coordinate (u,v)
     float hypot2 = pow(temp_u, 2) + pow(temp_v, 2);
-    float x_len = sqrt(115912.15-53752.93*cos( acos( (47776.0-hypot2)/(-764.0*sqrt(hypot2)) ) + atan(temp_v/temp_u)+.7062655 ));
-    float y_len = sqrt(97698.97-40191.66*cos(3.124-acos((hypot2-339624.0)/(-336246.807))));
-    shoulder_length = uint8_t(round((x_len-246.126)*(95/99.822))+40);
-    elbow_length = uint8_t(round((y_len-246.126)*(95/99.822))+40);
+    float x_len = sqrt(160.6811-77.8123*cos( acos( (31.3201-hypot2)/(-30.0*sqrt(hypot2)) ) + atan(temp_v/temp_u)+.40602 ));
+    float y_len = sqrt(134.8337-(85.8577*cos(2.91186-acos((hypot2-481.3201)/(-480.3)))));
 
-    //if the stuff is possible update the values
-    if(x_len > 246.126 && x_len < 345.948 && y_len > 246.126 && y_len < 345.948)
+    // convert inches to degrees for the servos
+    // max: 13.62 in = 135 deg
+    // min: 9.69 in = 40 deg
+    shoulder_length = uint8_t(round((x_len-9.69)*(95/3.93))+40);
+    elbow_length = uint8_t(round((y_len-9.69)*(95/3.93))+40);
+
+    //only update the position if its physically possible for the claw to be there
+    if(x_len > 9.69 && x_len < 13.62 && y_len > 9.69 && y_len < 13.62)
     {
         if(abs(left_y_axis) > .05)
             coord_u = temp_u;
@@ -176,24 +176,28 @@ void GamepadMonitor::sendUDP(){
             coord_v = temp_v;
     }
 
-    wrist_angle += theta;
-    if (wrist_angle < 0.0){
-        wrist_angle = 0.0;
+    wrist_angle = 127 * theta;
+    if (wrist_angle < 10 && wrist_angle > -10) {
+        wrist_angle = 0;
     }
-    wrist_rotation += phi;
+    wrist_rotation = 127 * phi;
+    if (wrist_rotation < 10 && wrist_rotation > -10) {
+        wrist_rotation = 0;
+    }
+
     QByteArray out;
     out.append(char(-127));
     out.append(char(1));
     out.append(shoulder_length);
     out.append(elbow_length);
-    out.append(wrist_angle);
-    out.append(wrist_rotation);
+    out.append(char(wrist_angle));
+    out.append(char(wrist_rotation));
     out.append(clawL);
     out.append(clawR);
     out.append(uint8_t((shoulder_length+elbow_length+wrist_angle+wrist_rotation+clawL+clawR)/6));
 
     mySocket.sendUDP(out);
-    qDebug() << "x:" << coord_u << "\ty:" << coord_v << "\t1:" << shoulder_length << "\t2:" << elbow_length << "\tCl:" << clawL <<"\twrist angle: "<< wrist_angle
+    qDebug() << "x:" << coord_u << "\ty:" << coord_v << "\tx len: " << x_len<< "\ty len:"<< y_len << "\t1:" << shoulder_length << "\t2:" << elbow_length << "\tCl:" << clawL <<"\twrist angle: "<< wrist_angle
              <<"\twrist rotation: "<< wrist_rotation << "\thash: "<< uint8_t((coord_u+coord_v+wrist_angle+wrist_rotation+clawL+clawR)/6) << endl;
 
 

@@ -39,10 +39,11 @@ private:
     float left_y_axis;
     float right_x_axis;
     float right_y_axis;
-    float coord_u = 600; //we will have to see what these are
-    float coord_v = 0;
+    float coord_u = 10; //we will have to see what these are
+    float coord_v = -10;
 
 public slots:
+    void onXAxis(double value);
     void onYAxis(double value);
     void onRYAxis(double value);
     void onRXAxis(double value);
