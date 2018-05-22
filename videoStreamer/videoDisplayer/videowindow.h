@@ -20,9 +20,7 @@ private:
     int _latency;
     QGst::PipelinePtr _pipeline;
     bool _playing;
-    GStreamerUtil::VideoProfile _videoProfile;
     QQuickWindow *_window = 0;
-    DriveGamepadMode _driveMode;
     int _updateLatencyTimerId;
 };
 

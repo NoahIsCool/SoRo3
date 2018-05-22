@@ -17,11 +17,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += main.cpp \
-    videowindow.cpp
+    videowindow.cpp \
+    socket.cpp \
+    configreader.cpp \
+    logger.cpp \
+    mpvlauncher.cpp
 
 HEADERS += \
-    videoplayer.h \
-    videowindow.h
+    videowindow.h \
+    socket.h \
+    configreader.h \
+    logger.h \
+    mpvlauncher.h
 
 PKGCONFIG += QtGStreamer-1.0 Qt5GLib-2.0
 
