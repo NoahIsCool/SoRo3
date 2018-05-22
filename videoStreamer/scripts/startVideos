@@ -1,0 +1,42 @@
+#!/bin/bash
+enableFront=false
+enableBack=false
+enableClaw=false
+
+if [[ $# == 0 ]] ; then
+	echo "usage: ./startVideo devices to start"
+	echo "devices: front, back, claw"
+	echo "example: ./startVideo front"
+	echo "its not perfect bro, for now if you want multiple streams,do this:"
+	echo "./startVideo front"
+	echo "then in another terminal ./startVideo back"
+	echo "it will get better when I put this into a c++ project"
+	exit -1
+fi
+
+if [[ $1 == "front" ]] ; then
+	enableFront=true
+fi
+
+if [[ $1 == "back" ]] ; then
+	enableBack=true
+fi
+
+if [[ $1 == "claw" ]] ; then
+	enableClaw=true
+fi
+
+if [[ $enableFront == "true" ]] ; then
+	echo "starting front video"
+	gst-launch-1.0 -v udpsrc port=5555 caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! rtph264depay ! decodebin ! videoconvert ! autovideosink
+fi
+
+if [[ $enableBack == "true" ]] ; then
+	echo "starting back video"
+	gst-launch-1.0 -v udpsrc port=5556 caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! rtph264depay ! decodebin ! videoconvert ! autovideosink
+fi
+
+if [[ $enableClaw == "true" ]] ; then
+	echo "starting claw video"
+	gst-launch-1.0 -v udpsrc port=5557 caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! rtph264depay ! decodebin ! videoconvert ! autovideosink
+fi
