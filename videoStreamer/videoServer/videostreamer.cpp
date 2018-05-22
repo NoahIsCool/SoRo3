@@ -36,9 +36,13 @@ VideoStreamer::VideoStreamer(QString configFile){
     }
 
     connected = false;
-    heartbeat = new socket(QHostAddress(clientAddress),HEARTBEAT_PORT,this);
+    heartbeat = new socket(HEARTBEAT_PORT,this);
     connect(heartbeat,SIGNAL(hasData(DataPacket)),this,SLOT(onHeartbeat(DataPacket)));
     timer = new QTimer();
+
+    //dont really know who will write to us so we just set it up to recieve
+    control = new socket(CONTROL_PORT,this);
+    connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
 
     //eventually want to load this from the config file but for now, just enter it
     //this loads the default profile. Unless you have a damn good reason, dont use a customized version
@@ -46,14 +50,32 @@ VideoStreamer::VideoStreamer(QString configFile){
     profile->codec = GStreamerUtil::VIDEO_CODEC_H264;
 }
 
+void VideoStreamer::onMessage(DataPacket packet){
+    QByteArray data;
+    if(packet.message == "front"){
+        startCamera(FRONT);
+        data.append("ack");
+    }else if(packet.message == "back"){
+        startCamera(BACK);
+        data.append("ack");
+    }else if(packet.message == "claw"){
+        startCamera(CLAW);
+        data.append("ack");
+    }else{
+        data.append("nack");
+    }
+    control->sendUDP(packet.sender,data);
+}
+
 void VideoStreamer::onHeartbeat(DataPacket packet){
     QByteArray data;
     data.append("ack");
-    heartbeat->sendUDP(data);
+    heartbeat->sendUDP(packet.sender,data);
     if(connected){
         timer->stop();
     }else{
         connected = true;
+        heartbeatAddress = packet.sender;
     }
     timer->start(1000);
 }
@@ -61,7 +83,7 @@ void VideoStreamer::onHeartbeat(DataPacket packet){
 void VideoStreamer::onTimeout(){
     QByteArray data;
     data.append("timeout");
-    heartbeat->sendUDP(data);
+    heartbeat->sendUDP(heartbeatAddress,data);
     connected = false;
     shutdownAllCameras();
     timer->stop();

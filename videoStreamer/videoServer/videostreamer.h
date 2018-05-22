@@ -12,7 +12,6 @@
 #include <Qt5GStreamer/QGst/Utils/ApplicationSink>
 #include <Qt5GStreamer/QGst/Utils/ApplicationSource>
 #include <Qt5GStreamer/QGlib/Init>
-#include <thread>
 #include <QTimer>
 
 #include "gstreamerutil.h"
@@ -20,10 +19,11 @@
 #include "configreader.h"
 #include "socket.h"
 
-const int FRONT_CAMERA_PORT =   5555;
-const int BACK_CAMERA_PORT =    5556;
-const int CLAW_CAMERA_PORT =    5557;
-const int HEARTBEAT_PORT =      6969;
+const int FRONT_CAMERA_PORT     = 5555;
+const int BACK_CAMERA_PORT      = 5556;
+const int CLAW_CAMERA_PORT      = 5557;
+const int CONTROL_PORT          = 6969;
+const int HEARTBEAT_PORT        = 6970;
 
 enum CAMERA : int{
     FRONT = 0,
@@ -41,6 +41,7 @@ public:
 signals:
 
 public slots:
+    void onMessage(DataPacket packet);
     void onHeartbeat(DataPacket packet);
     void onTimeout();
 
@@ -55,8 +56,9 @@ private:
     QString backDevice = "NOT_FOUND";
     QString clawDevice = "NOT_FOUND";
 
-    std::thread *heartbeatThread;
     socket *heartbeat;
+    QHostAddress heartbeatAddress;
+    socket *control;
     QTimer *timer;
     bool connected;
 

@@ -7,7 +7,7 @@ socket::socket(QHostAddress address,int p,QObject *parent) : QObject(parent)
     socketIn = new QUdpSocket(this);
     socketOut = new QUdpSocket(this);
     addressToSendTo = address;
-    p = port;
+    port = p;
     if(socketIn->bind(QHostAddress::LocalHost, port))
     //if(socketIn->bind(QHostAddress::LocalHost,1237))
     {
@@ -18,7 +18,18 @@ socket::socket(QHostAddress address,int p,QObject *parent) : QObject(parent)
     connect(socketIn, SIGNAL(readyRead()), this, SLOT(readUDP()));
 }
 
-void socket::sendUDP(QByteArray Data)
+socket::socket(int p,QObject *parent){
+    socketOut = new QUdpSocket(this);
+    socketIn = new QUdpSocket(this);
+    port = p;
+    if(socketIn->bind(QHostAddress::LocalHost),port){
+        qDebug() << "Bound to port " << QString::number(port);
+    }else{
+        qDebug() << "Error binding to port" << socketIn->errorString();
+    }
+}
+
+void socket::sendUDP(QHostAddress to,QByteArray Data)
 {
     //QByteArray Data;
     //Data.append(message);
@@ -27,7 +38,7 @@ void socket::sendUDP(QByteArray Data)
     // to the host address and at port.
     // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
     //                      const QHostAddress & host, quint16 port)
-    socketOut->writeDatagram(Data, addressToSendTo, port);
+    socketOut->writeDatagram(Data, to, port);
     //socketOut->writeDatagram(Data, QHostAddress::LocalHost, 1234);
 
 }
@@ -49,8 +60,9 @@ void socket::readUDP()
 
     socketIn->readDatagram(buffer.data(), buffer.size(),
                          &sender, &senderPort);
+    addressToSendTo = sender;
 
-    dataPacket.sender = sender.toString();
+    dataPacket.sender = sender;
     dataPacket.port = senderPort;
     dataPacket.message = buffer;
 
