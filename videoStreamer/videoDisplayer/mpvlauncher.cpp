@@ -8,9 +8,9 @@ MPVLauncher::MPVLauncher(QObject *parent) : QObject(parent){
 
 void MPVLauncher::start()
 {
-    ConfigReader reader("/opt/project-remoteVideo/config/missionControl.conf");
+    ConfigReader reader("/home/soro/videoStreamer/config/missionControl.conf");
     if(!reader.exists()){
-        LOG_W(LOG_TAG,"no config file found using defaults\nPlease put a config file at /home/soro/videoStreamer/config");
+        LOG_W(LOG_TAG,"no config file found using defaults\nPlease put a config file at /home/soro/videoStreamer/config/missionControl.conf");
         rover = new QHostAddress("192.168.1.13");
 
     }
@@ -19,7 +19,7 @@ void MPVLauncher::start()
     control = new socket(CONTROL_CLIENT_PORT,this);
     heartbeat = new socket(HEARTBEAT_CLIENT_PORT,this);
     initMessage = new QByteArray;
-    initMessage->append("init");
+    initMessage->append(INIT);
     control->sendUDP(*rover,*initMessage,CONTROL_PORT);
     qInfo() << "connecting...";
     connectTimer = new QTimer(this);
@@ -44,28 +44,54 @@ void MPVLauncher::processInput(){
 
         if(option.startsWith("start")){
             if(option.contains("front")){
-                message.append("front");
-                control->sendUDP(*rover,message,CONTROL_PORT);
-                system("gst-launch-1.0 -v udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
+                if(frontVideoThread != nullptr){
+                    LOG_W(LOG_TAG,"front video already running! close it, you fool!");
+                    break;
+                }
+                message.append(CAMERA_TOGGLE);
+                message.append(START_CAMERA);
+                message.append(FRONT);
+                LOG_I(LOG_TAG,"starting front camera");
             }else if(option.contains("back")){
-                message.append("front");
-                control->sendUDP(*rover,message,CONTROL_PORT);
-                system("gst-launch-1.0 -v udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
+                message.append(CAMERA_TOGGLE);
+                message.append(START_CAMERA);
+                message.append(BACK);
             }else if(option.contains("claw")){
-                message.append("front");
-                control->sendUDP(*rover,message,CONTROL_PORT);
-                system("gst-launch-1.0 -v udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
+                message.append(CAMERA_TOGGLE);
+                message.append(START_CAMERA);
+                message.append(CLAW);
+            }
+        }else if(option.startsWith("stop")){
+            if(option.contains("front")){
+                message.append(CAMERA_TOGGLE);
+                message.append(STOP_CAMERA);
+                message.append(FRONT);
+            }else if(option.contains("back")){
+                message.append(CAMERA_TOGGLE);
+                message.append(STOP_CAMERA);
+                message.append(BACK);
+            }else if(option.contains("claw")){
+                message.append(CAMERA_TOGGLE);
+                message.append(STOP_CAMERA);
+                message.append(CLAW);
             }
         }else if(option == "help"){
             qInfo() << help;// << std::endl;
+            break;
         }else if(option == "exit"){
+            message.append(EXIT);
+            delete frontVideoThread;
+            control->sendUDP(*rover,message,CONTROL_PORT);
             exit(1);
         }else{
             qInfo() << "dont recognize that one, noob";// << std::endl;
+            break;
         }
-    }
 
-    message.clear();
+        control->sendUDP(*rover,message,CONTROL_PORT);
+        LOG_I(LOG_TAG,"message sent");
+        message.clear();
+    }
 }
 
 void MPVLauncher::attemptConnection(){
@@ -79,7 +105,7 @@ void MPVLauncher::attemptConnection(){
 
 void MPVLauncher::onMessage(DataPacket packet){
     LOG_I(LOG_TAG,"got message " + packet.message);
-    if(packet.message == "init"){
+    if(packet.message.startsWith(INIT)){
         connected = true;
         heartbeatTimer->start(200);
         connectTimer->stop();
@@ -87,10 +113,37 @@ void MPVLauncher::onMessage(DataPacket packet){
         inputThread = new std::thread([this](){
             processInput();
         });
-    }else if(packet.message == "ack"){
-        //all good
-    }else if(packet.message == "nack"){
-        LOG_E(LOG_TAG,"got nack...shit");
+    }else if(packet.message.contains(CAMERA_TOGGLE)){
+        if(packet.message.contains(CAMERA_STARTED)){
+            if(packet.message.contains(FRONT)){
+                if(frontVideoThread == nullptr){
+                    frontVideoThread = new std::thread([this](){
+                        system("gst-launch-1.0 -v udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
+                        frontVideoThread = nullptr;
+                    });
+                }else{
+                    LOG_W(LOG_TAG,"front video active! close it, fool");
+                }
+            }else if(packet.message.contains(BACK)){
+                if(backVideoThread == nullptr){
+                    backVideoThread = new std::thread([this](){
+                        system("gst-launch-1.0 -v udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
+                        backVideoThread = nullptr;
+                    });
+                }else{
+                    LOG_W(LOG_TAG,"back video active! close it, fool");
+                }
+            }else if(packet.message.contains(CLAW)){
+                if(backVideoThread == nullptr){
+                    clawVideoThread = new std::thread([this](){
+                        system("gst-launch-1.0 -v udpsrc port=5557 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
+                        clawVideoThread = nullptr;
+                    });
+                }else{
+                    LOG_W(LOG_TAG,"claw video active! close it, fool");
+                }
+            }
+        }
     }else if(packet.message == "timeout"){
         connected = false;
         LOG_E(LOG_TAG,"DISCONNECTED");

@@ -2,7 +2,9 @@ This is a super simplfied version the the old rover streamig video code. The bes
 of this code is the fact that it can stream up to 3 videos at the same time.
 The down side is that I have no idea how in the fuck to make a gui...soooo it uses mpv 
 instead...you can use vlc if you want, but I'm not going to put it into the code.
-to use vlc use this: 
+
+That being said...This code is kinda hacky right now...I really just wanted to put
+something out there that works. I will clean it up later but for now it sucks.
 
 Anyways, to use this code, put the videoStreamer on the rover along with the config folder.
 The code will expect the config folder to be under here: /opt/videoStreamer
@@ -13,4 +15,4 @@ code that will do what that script does. But once the code for the videoDisplaye
 the script will no longer work because the rover will expect a 'heartbeat' to ensure its
 not waisting broadband.
 
-You should use the: SCRIPT
+You should use the: VideoDisplayer

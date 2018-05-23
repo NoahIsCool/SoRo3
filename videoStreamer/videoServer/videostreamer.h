@@ -13,26 +13,13 @@
 #include <Qt5GStreamer/QGst/Utils/ApplicationSource>
 #include <Qt5GStreamer/QGlib/Init>
 #include <QTimer>
+#include <socket.h>
+#include <soro_global.h>
 
 #include "gstreamerutil.h"
 #include "logger.h"
 #include "configreader.h"
-#include "socket.h"
 
-const int FRONT_CAMERA_PORT     = 5555;
-const int BACK_CAMERA_PORT      = 5556;
-const int CLAW_CAMERA_PORT      = 5557;
-const int CONTROL_PORT          = 6969;
-const int HEARTBEAT_PORT        = 6970;
-
-const int CONTROL_CLIENT_PORT   = 6971;
-const int HEARTBEAT_CLIENT_PORT = 6972;
-
-enum CAMERA : int{
-    FRONT = 0,
-    BACK,
-    CLAW,
-};
 
 class VideoStreamer : public QObject
 {
@@ -65,7 +52,8 @@ private:
 
     void onBusMessage(const QGst::MessagePtr &message);
     void shutdownAllCameras();
-    void startCamera(CAMERA camera,QHostAddress clientAddress);
+    void startCamera(QString camera,QHostAddress clientAddress);
+    void stopCamera(QString camera);
 };
 
 #endif // VIDEOSTREAMER_H

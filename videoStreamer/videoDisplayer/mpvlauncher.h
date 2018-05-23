@@ -7,17 +7,11 @@
 #include <thread>
 
 #include "socket.h"
+#include "soro_global.h"
 #include "configreader.h"
 #include "logger.h"
 
-const int FRONT_CAMERA_PORT     = 5555;
-const int BACK_CAMERA_PORT      = 5556;
-const int CLAW_CAMERA_PORT      = 5557;
-const int CONTROL_PORT          = 6969;
-const int HEARTBEAT_PORT        = 6970;
-
-const int CONTROL_CLIENT_PORT   = 6971;
-const int HEARTBEAT_CLIENT_PORT = 6972;
+using namespace soro;
 
 class MPVLauncher : public QObject
 {
@@ -43,6 +37,9 @@ private:
     QTimer *connectTimer;
     QByteArray *initMessage;
     std::thread *inputThread;
+    std::thread *frontVideoThread = nullptr;
+    std::thread *backVideoThread = nullptr;
+    std::thread *clawVideoThread = nullptr;
     bool connected;
 
     void processInput();

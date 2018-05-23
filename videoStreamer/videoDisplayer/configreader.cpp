@@ -32,7 +32,6 @@ ConfigReader::ConfigReader(QString configFile){
             list.push_back(pair);
             line = in.readLine();
         }
-        LOG_I(LOG_TAG,"done with loop");
     }
 }
 
