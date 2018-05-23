@@ -22,11 +22,12 @@ socket::socket(int p,QObject *parent){
     socketOut = new QUdpSocket(this);
     socketIn = new QUdpSocket(this);
     port = p;
-    if(socketIn->bind(QHostAddress::LocalHost),port){
+    if(socketIn->bind(QHostAddress::AnyIPv4),port){
         qDebug() << "Bound to port " << QString::number(port);
     }else{
         qDebug() << "Error binding to port" << socketIn->errorString();
     }
+    connect(socketIn, SIGNAL(readyRead()), this, SLOT(readUDP()));
 }
 
 void socket::sendUDP(QHostAddress to,QByteArray Data,int p)

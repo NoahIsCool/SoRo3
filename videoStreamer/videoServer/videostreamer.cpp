@@ -32,23 +32,29 @@ VideoStreamer::VideoStreamer(QString configFile){
 
     connected = false;
     heartbeat = new socket(HEARTBEAT_PORT,this);
-    timer = new QTimer(this);
+    heartbeatTimeout = new QTimer(this);
     connect(heartbeat,SIGNAL(hasData(DataPacket)),this,SLOT(onHeartbeat(DataPacket)));
+    connect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
 
-    //dont really know who will write to us so we just set it up to recieve
     control = new socket(CONTROL_PORT,this);
     connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
+    LOG_I(LOG_TAG,"setup sockets");
 
     //eventually want to load this from the config file but for now, just enter it
     //this loads the default profile. Unless you have a damn good reason, dont use a customized version
+    //not really using this right now but I would like to add it eventually...
     profile = new GStreamerUtil::VideoProfile();
     profile->codec = GStreamerUtil::VIDEO_CODEC_H264;
 }
 
 void VideoStreamer::onMessage(DataPacket packet){
-    LOG_I(LOG_TAG,"recieved message");
     QByteArray data;
-    if(packet.message == "front"){
+    LOG_I(LOG_TAG,"got message " + packet.message);
+    if(packet.message == "init"){
+        data.append("init");
+        connected = true;
+        LOG_I(LOG_TAG,"connected");
+    }else if(packet.message == "front"){
         startCamera(FRONT,packet.sender);
         data.append("ack");
     }else if(packet.message == "back"){
@@ -60,31 +66,31 @@ void VideoStreamer::onMessage(DataPacket packet){
     }else{
         data.append("nack");
     }
-    control->sendUDP(packet.sender,data,packet.port);
+    LOG_I(LOG_TAG,"sending message to " + packet.sender.toString() + " at " + QString::number(CONTROL_CLIENT_PORT));
+    control->sendUDP(packet.sender,data,CONTROL_CLIENT_PORT);
 }
 
 void VideoStreamer::onHeartbeat(DataPacket packet){
-    LOG_W(LOG_TAG,"got heartbeat");
     QByteArray data;
     data.append("ack");
     heartbeat->sendUDP(packet.sender,data,packet.port);
     if(connected){
-        timer->stop();
+        heartbeatTimeout->stop();
     }else{
         connected = true;
         heartbeatAddress = packet.sender;
     }
-    timer->start(1000);
+    heartbeatTimeout->start(1000);
 }
 
 void VideoStreamer::onTimeout(){
-    LOG_W(LOG_TAG,"timedout");
+    LOG_W(LOG_TAG,"timed out");
     QByteArray data;
     data.append("timeout");
     heartbeat->sendUDP(heartbeatAddress,data,HEARTBEAT_CLIENT_PORT);
     connected = false;
     shutdownAllCameras();
-    timer->stop();
+    heartbeatTimeout->stop();
 }
 
 void VideoStreamer::shutdownAllCameras(){

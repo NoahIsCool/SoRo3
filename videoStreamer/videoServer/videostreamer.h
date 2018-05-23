@@ -57,11 +57,10 @@ private:
     QString frontDevice = "NOT_FOUND";
     QString backDevice = "NOT_FOUND";
     QString clawDevice = "NOT_FOUND";
-
     socket *heartbeat;
     QHostAddress heartbeatAddress;
     socket *control;
-    QTimer *timer;
+    QTimer *heartbeatTimeout;
     bool connected;
 
     void onBusMessage(const QGst::MessagePtr &message);

@@ -27,6 +27,7 @@ socket::socket(int p,QObject *parent){
     }else{
         qDebug() << "Error binding to port" << socketIn->errorString();
     }
+    connect(socketIn, SIGNAL(readyRead()), this, SLOT(readUDP()));
 }
 
 void socket::sendUDP(QHostAddress to,QByteArray Data,int p)
@@ -45,7 +46,6 @@ void socket::sendUDP(QHostAddress to,QByteArray Data,int p)
 
 void socket::readUDP()
 {
-    std::cout << "has data" << std::endl;
     // when data comes in
     QByteArray buffer;
     buffer.resize(socketIn->pendingDatagramSize());

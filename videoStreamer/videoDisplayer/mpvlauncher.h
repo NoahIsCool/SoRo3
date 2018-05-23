@@ -1,7 +1,6 @@
 ﻿#ifndef MPVLAUNCHER_H
 #define MPVLAUNCHER_H
-#include<QTextStream>
-#include<iostream>
+#include <QTextStream>
 #include <QTimer>
 #include <QHostAddress>
 #include <QObject>
@@ -32,15 +31,19 @@ signals:
 public slots:
     void beatHeart();
     void checkHeartBeat(DataPacket packet);
+    void onMessage(DataPacket packet);
+    void attemptConnection();
 
 private:
     const QString LOG_TAG = "Video Displayer";
     QHostAddress *rover;
     socket *control;
     socket *heartbeat;
-    QTimer *timer;
-    QByteArray *controlPacket;
+    QTimer *heartbeatTimer;
+    QTimer *connectTimer;
+    QByteArray *initMessage;
     std::thread *inputThread;
+    bool connected;
 
     void processInput();
 };
