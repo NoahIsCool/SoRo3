@@ -61,7 +61,6 @@ VideoStreamer::VideoStreamer(QString configFile){
  */
 void VideoStreamer::onMessage(DataPacket packet){
     QByteArray data;
-    qInfo() << packet.message;
     if(packet.message.startsWith(INIT)){
         data.append(INIT);
         connected = true;
@@ -106,7 +105,7 @@ void VideoStreamer::onMessage(DataPacket packet){
     }else if(packet.message.contains(EXIT)){
         shutdownAllCameras();
     }
-    LOG_I(LOG_TAG,"sending " + data + " to " + packet.sender.toString() + " at " + QString::number(CONTROL_CLIENT_PORT));
+    LOG_I(LOG_TAG,"sending message to " + packet.sender.toString() + " at " + QString::number(CONTROL_CLIENT_PORT));
     control->sendUDP(packet.sender,data,CONTROL_CLIENT_PORT);
 }
 

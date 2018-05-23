@@ -21,7 +21,7 @@ void MPVLauncher::start()
     initMessage = new QByteArray;
     initMessage->append(INIT);
     control->sendUDP(*rover,*initMessage,CONTROL_PORT);
-    qInfo() << "connecting...";
+    std::cout << "connecting..." << std::endl;
     connectTimer = new QTimer(this);
     heartbeatTimer = new QTimer(this);
     //timer->setInterval(200);
@@ -36,11 +36,12 @@ void MPVLauncher::start()
 void MPVLauncher::processInput(){
     QByteArray message;
     QString option = "";
-    QString help = "Commands: \nstart \nstop \nhelp \nexit \nOptions:\nfront \nback \nclaw\n";
-    qInfo() << help;// << "\n";
-    QTextStream s(stdin);
+    std::string help = "Commands: \tCameras \nstart \t\tfront \nstop \t\tback \nhelp \t\tclaw \nexit\n";
+    std::cout << help << std::endl;
     while(true){
-        option = s.readLine();
+        std::string raw;
+        std::getline(std::cin,raw);
+        option = QString::fromStdString(raw);
 
         if(option.startsWith("start")){
             if(option.contains("front")){
@@ -76,7 +77,7 @@ void MPVLauncher::processInput(){
                 message.append(CLAW);
             }
         }else if(option == "help"){
-            qInfo() << help;// << std::endl;
+            std::cout << help << std::endl;
             break;
         }else if(option == "exit"){
             message.append(EXIT);
@@ -84,7 +85,7 @@ void MPVLauncher::processInput(){
             control->sendUDP(*rover,message,CONTROL_PORT);
             exit(1);
         }else{
-            qInfo() << "dont recognize that one, noob";// << std::endl;
+            std::cout << "dont recognize that one" << std::endl;
             break;
         }
 
@@ -96,7 +97,7 @@ void MPVLauncher::processInput(){
 
 void MPVLauncher::attemptConnection(){
     if(connected == false){
-        qInfo() << ".";
+        std::cout << "." << std::endl;
         control->sendUDP(*rover,*initMessage,CONTROL_PORT);
         connectTimer->stop();
         connectTimer->start(3000);
@@ -104,7 +105,6 @@ void MPVLauncher::attemptConnection(){
 }
 
 void MPVLauncher::onMessage(DataPacket packet){
-    LOG_I(LOG_TAG,"got message " + packet.message);
     if(packet.message.startsWith(INIT)){
         connected = true;
         heartbeatTimer->start(200);

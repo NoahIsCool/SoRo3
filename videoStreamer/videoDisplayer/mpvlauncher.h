@@ -1,10 +1,10 @@
 ﻿#ifndef MPVLAUNCHER_H
 #define MPVLAUNCHER_H
-#include <QTextStream>
 #include <QTimer>
 #include <QHostAddress>
 #include <QObject>
 #include <thread>
+#include <iostream>
 
 #include "socket.h"
 #include "soro_global.h"

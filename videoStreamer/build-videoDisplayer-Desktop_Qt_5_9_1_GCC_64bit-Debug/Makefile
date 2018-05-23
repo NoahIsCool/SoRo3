@@ -754,9 +754,8 @@ moc_configreader.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
 		/home/kelly/Qt/5.9.1/gcc_64/bin/moc
 	/home/kelly/Qt/5.9.1/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++ -I/opt/project-remoteVideo/videoDisplayer -I/opt/project-remoteVideo/Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../videoDisplayer/configreader.h -o moc_configreader.cpp
 
-moc_mpvlauncher.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+moc_mpvlauncher.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
@@ -778,9 +777,10 @@ moc_mpvlauncher.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
@@ -803,34 +803,35 @@ moc_mpvlauncher.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvarlengtharray.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontainerfwd.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
 		../Networking/socket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QUdpSocket \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qudpsocket.h \
+		../Networking/soro_global.h \
 		../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QFile \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		../videoDisplayer/logger.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
 		../videoDisplayer/mpvlauncher.h \
@@ -907,18 +908,6 @@ main.o: ../videoDisplayer/main.cpp /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QC
 		../videoDisplayer/videowindow.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimerEvent \
 		../videoDisplayer/mpvlauncher.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
@@ -927,14 +916,27 @@ main.o: ../videoDisplayer/main.cpp /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QC
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
 		../Networking/socket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QUdpSocket \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qudpsocket.h \
+		../Networking/soro_global.h \
 		../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QFile \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		../videoDisplayer/logger.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../videoDisplayer/main.cpp
@@ -1077,9 +1079,8 @@ logger.o: ../videoDisplayer/logger.cpp ../videoDisplayer/logger.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o logger.o ../videoDisplayer/logger.cpp
 
 mpvlauncher.o: ../videoDisplayer/mpvlauncher.cpp ../videoDisplayer/mpvlauncher.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
@@ -1101,9 +1102,10 @@ mpvlauncher.o: ../videoDisplayer/mpvlauncher.cpp ../videoDisplayer/mpvlauncher.h
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
@@ -1126,34 +1128,35 @@ mpvlauncher.o: ../videoDisplayer/mpvlauncher.cpp ../videoDisplayer/mpvlauncher.h
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvarlengtharray.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontainerfwd.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
 		../Networking/socket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QUdpSocket \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qudpsocket.h \
+		../Networking/soro_global.h \
 		../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QFile \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		../videoDisplayer/logger.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mpvlauncher.o ../videoDisplayer/mpvlauncher.cpp
