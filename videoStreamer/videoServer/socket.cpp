@@ -22,14 +22,14 @@ socket::socket(int p,QObject *parent){
     socketOut = new QUdpSocket(this);
     socketIn = new QUdpSocket(this);
     port = p;
-    if(socketIn->bind(QHostAddress::LocalHost),port){
+    if(socketIn->bind(QHostAddress::AnyIPv4,port)){
         qDebug() << "Bound to port " << QString::number(port);
     }else{
         qDebug() << "Error binding to port" << socketIn->errorString();
     }
 }
 
-void socket::sendUDP(QHostAddress to,QByteArray Data)
+void socket::sendUDP(QHostAddress to,QByteArray Data,int p)
 {
     //QByteArray Data;
     //Data.append(message);
@@ -38,13 +38,14 @@ void socket::sendUDP(QHostAddress to,QByteArray Data)
     // to the host address and at port.
     // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
     //                      const QHostAddress & host, quint16 port)
-    socketOut->writeDatagram(Data, to, port);
+    socketOut->writeDatagram(Data, to, p);
     //socketOut->writeDatagram(Data, QHostAddress::LocalHost, 1234);
 
 }
 
 void socket::readUDP()
 {
+    std::cout << "has data" << std::endl;
     // when data comes in
     QByteArray buffer;
     buffer.resize(socketIn->pendingDatagramSize());

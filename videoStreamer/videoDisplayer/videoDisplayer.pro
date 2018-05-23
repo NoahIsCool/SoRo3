@@ -1,5 +1,5 @@
 QT -= gui
-QT += network core dbus widgets qml quick quickcontrols2 webengine
+QT += network core dbus
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -33,6 +33,3 @@ HEADERS += \
 PKGCONFIG += QtGStreamer-1.0 Qt5GLib-2.0
 
 LIBS += -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0
-
-DISTFILES += \
-    VideoWindow.qml

@@ -1,9 +1,6 @@
 ﻿#ifndef VIDEOWINDOW_H
 #define VIDEOWINDOW_H
 
-#include <QObject>
-#include <QQuickWindow>
-#include <QQmlApplicationEngine>
 #include <QTimerEvent>
 
 #include <Qt5GStreamer/QGst/Element>
@@ -14,13 +11,12 @@
 class VideoWindow
 {
 public:
-    VideoWindow(QQmlEngine *engine);
+    VideoWindow();
 
 private:
     int _latency;
     QGst::PipelinePtr _pipeline;
     bool _playing;
-    QQuickWindow *_window = 0;
     int _updateLatencyTimerId;
 };
 

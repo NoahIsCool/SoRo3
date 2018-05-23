@@ -25,6 +25,9 @@ const int CLAW_CAMERA_PORT      = 5557;
 const int CONTROL_PORT          = 6969;
 const int HEARTBEAT_PORT        = 6970;
 
+const int CONTROL_CLIENT_PORT   = 6971;
+const int HEARTBEAT_CLIENT_PORT = 6972;
+
 enum CAMERA : int{
     FRONT = 0,
     BACK,
@@ -51,7 +54,6 @@ private:
     QGst::PipelinePtr frontPipeline;
     QGst::PipelinePtr backPipeline;
     QGst::PipelinePtr clawPipeline;
-    QString clientAddress = "192.168.1.183";
     QString frontDevice = "NOT_FOUND";
     QString backDevice = "NOT_FOUND";
     QString clawDevice = "NOT_FOUND";
@@ -64,7 +66,7 @@ private:
 
     void onBusMessage(const QGst::MessagePtr &message);
     void shutdownAllCameras();
-    void startCamera(CAMERA camera);
+    void startCamera(CAMERA camera,QHostAddress clientAddress);
 };
 
 #endif // VIDEOSTREAMER_H

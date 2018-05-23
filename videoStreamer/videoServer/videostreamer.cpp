@@ -23,22 +23,17 @@ VideoStreamer::VideoStreamer(QString configFile){
         frontDevice = reader.find("frontCamera");
         backDevice = reader.find("backCamera");
         clawDevice = reader.find("clawCamera");
-        clientAddress = reader.find("clientAddress");
     }else{
         QFile test("/dev/video0");
         if(test.exists()){
             frontDevice = "video0";
         }
     }
-    //if its not entered then it defaults to this address
-    if(clientAddress == "NOT_FOUND"){
-        clientAddress = "192.168.1.183";
-    }
 
     connected = false;
     heartbeat = new socket(HEARTBEAT_PORT,this);
+    timer = new QTimer(this);
     connect(heartbeat,SIGNAL(hasData(DataPacket)),this,SLOT(onHeartbeat(DataPacket)));
-    timer = new QTimer();
 
     //dont really know who will write to us so we just set it up to recieve
     control = new socket(CONTROL_PORT,this);
@@ -51,26 +46,28 @@ VideoStreamer::VideoStreamer(QString configFile){
 }
 
 void VideoStreamer::onMessage(DataPacket packet){
+    LOG_I(LOG_TAG,"recieved message");
     QByteArray data;
     if(packet.message == "front"){
-        startCamera(FRONT);
+        startCamera(FRONT,packet.sender);
         data.append("ack");
     }else if(packet.message == "back"){
-        startCamera(BACK);
+        startCamera(BACK,packet.sender);
         data.append("ack");
     }else if(packet.message == "claw"){
-        startCamera(CLAW);
+        startCamera(CLAW,packet.sender);
         data.append("ack");
     }else{
         data.append("nack");
     }
-    control->sendUDP(packet.sender,data);
+    control->sendUDP(packet.sender,data,packet.port);
 }
 
 void VideoStreamer::onHeartbeat(DataPacket packet){
+    LOG_W(LOG_TAG,"got heartbeat");
     QByteArray data;
     data.append("ack");
-    heartbeat->sendUDP(packet.sender,data);
+    heartbeat->sendUDP(packet.sender,data,packet.port);
     if(connected){
         timer->stop();
     }else{
@@ -81,9 +78,10 @@ void VideoStreamer::onHeartbeat(DataPacket packet){
 }
 
 void VideoStreamer::onTimeout(){
+    LOG_W(LOG_TAG,"timedout");
     QByteArray data;
     data.append("timeout");
-    heartbeat->sendUDP(heartbeatAddress,data);
+    heartbeat->sendUDP(heartbeatAddress,data,HEARTBEAT_CLIENT_PORT);
     connected = false;
     shutdownAllCameras();
     timer->stop();
@@ -98,7 +96,8 @@ void VideoStreamer::shutdownAllCameras(){
     clawPipeline->setState(QGst::StateNull);
 }
 
-void VideoStreamer::startCamera(CAMERA camera){
+void VideoStreamer::startCamera(CAMERA camera,QHostAddress client){
+    QString clientAddress = client.toString();
     switch(camera){
     case FRONT:
         if(frontDevice != "NOT_FOUND"){

@@ -16,7 +16,7 @@ class socket : public QObject
 public:
     explicit socket(QHostAddress addressToSendTo,int p,QObject *parent = nullptr);
     socket(int p,QObject *parent = nullptr);
-    void sendUDP(QHostAddress to,QByteArray message);
+    void sendUDP(QHostAddress to,QByteArray message,int port);
 
 signals:
     void hasData(DataPacket);

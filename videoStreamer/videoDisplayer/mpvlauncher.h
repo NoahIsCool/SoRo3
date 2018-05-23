@@ -1,8 +1,11 @@
 ﻿#ifndef MPVLAUNCHER_H
 #define MPVLAUNCHER_H
-#include <iostream>
+#include<QTextStream>
+#include<iostream>
 #include <QTimer>
 #include <QHostAddress>
+#include <QObject>
+#include <thread>
 
 #include "socket.h"
 #include "configreader.h"
@@ -14,16 +17,21 @@ const int CLAW_CAMERA_PORT      = 5557;
 const int CONTROL_PORT          = 6969;
 const int HEARTBEAT_PORT        = 6970;
 
-using namespace Logger;
+const int CONTROL_CLIENT_PORT   = 6971;
+const int HEARTBEAT_CLIENT_PORT = 6972;
 
 class MPVLauncher : public QObject
 {
     Q_OBJECT
 public:
-    MPVLauncher(QObject *parent = nullptr);
+    explicit MPVLauncher(QObject *parent = nullptr);
+    void start();
+
+signals:
 
 public slots:
     void beatHeart();
+    void checkHeartBeat(DataPacket packet);
 
 private:
     const QString LOG_TAG = "Video Displayer";
@@ -31,6 +39,10 @@ private:
     socket *control;
     socket *heartbeat;
     QTimer *timer;
+    QByteArray *controlPacket;
+    std::thread *inputThread;
+
+    void processInput();
 };
 
 #endif // MPVLAUNCHER_H

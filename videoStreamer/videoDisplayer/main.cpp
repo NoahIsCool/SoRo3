@@ -1,9 +1,7 @@
 ﻿#include <QCoreApplication>
-#include <QMessageBox>
-#include <QQuickStyle>
 #include <QProcessEnvironment>
-#include <QtWebEngine>
 #include <Qt5GStreamer/QGst/Init>
+#include <iostream>
 
 #include "videowindow.h"
 #include "mpvlauncher.h"
@@ -12,7 +10,9 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    MPVLauncher launcher();
+    std::cout << "calling launcher" << std::endl;
+    MPVLauncher launcher(0);
+    launcher.start();
 
     return a.exec();
 }

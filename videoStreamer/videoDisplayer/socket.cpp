@@ -29,7 +29,7 @@ socket::socket(int p,QObject *parent){
     }
 }
 
-void socket::sendUDP(QHostAddress to,QByteArray Data)
+void socket::sendUDP(QHostAddress to,QByteArray Data,int p)
 {
     //QByteArray Data;
     //Data.append(message);
@@ -38,7 +38,7 @@ void socket::sendUDP(QHostAddress to,QByteArray Data)
     // to the host address and at port.
     // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
     //                      const QHostAddress & host, quint16 port)
-    socketOut->writeDatagram(Data, to, port);
+    socketOut->writeDatagram(Data, to, p);
     //socketOut->writeDatagram(Data, QHostAddress::LocalHost, 1234);
 
 }
