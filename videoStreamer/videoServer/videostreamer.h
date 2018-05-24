@@ -49,6 +49,9 @@ private:
     socket *control;
     QTimer *heartbeatTimeout;
     bool connected;
+    bool frontPipeEmpty = true;
+    bool backPipeEmpty = true;
+    bool clawPipeEmpty = true;
 
     void onBusMessage(const QGst::MessagePtr &message);
     void shutdownAllCameras();

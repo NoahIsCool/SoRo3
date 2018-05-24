@@ -45,10 +45,6 @@ void MPVLauncher::processInput(){
 
         if(option.startsWith("start")){
             if(option.contains("front")){
-                if(frontVideoThread != nullptr){
-                    LOG_W(LOG_TAG,"front video already running! close it, you fool!");
-                    break;
-                }
                 message.append(CAMERA_TOGGLE);
                 message.append(START_CAMERA);
                 message.append(FRONT);
@@ -67,21 +63,26 @@ void MPVLauncher::processInput(){
                 message.append(CAMERA_TOGGLE);
                 message.append(STOP_CAMERA);
                 message.append(FRONT);
+                frontPipeline->setState(QGst::StatePaused);
+                frontPipeline->setState(QGst::StateNull);
             }else if(option.contains("back")){
                 message.append(CAMERA_TOGGLE);
                 message.append(STOP_CAMERA);
                 message.append(BACK);
+                backPipeline->setState(QGst::StatePaused);
+                backPipeline->setState(QGst::StateNull);
             }else if(option.contains("claw")){
                 message.append(CAMERA_TOGGLE);
                 message.append(STOP_CAMERA);
                 message.append(CLAW);
+                clawPipeline->setState(QGst::StatePaused);
+                clawPipeline->setState(QGst::StateNull);
             }
         }else if(option == "help"){
             std::cout << help << std::endl;
             break;
         }else if(option == "exit"){
             message.append(EXIT);
-            delete frontVideoThread;
             control->sendUDP(*rover,message,CONTROL_PORT);
             exit(1);
         }else{
@@ -116,32 +117,17 @@ void MPVLauncher::onMessage(DataPacket packet){
     }else if(packet.message.contains(CAMERA_TOGGLE)){
         if(packet.message.contains(CAMERA_STARTED)){
             if(packet.message.contains(FRONT)){
-                if(frontVideoThread == nullptr){
-                    frontVideoThread = new std::thread([this](){
-                        system("gst-launch-1.0 -v udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
-                        frontVideoThread = nullptr;
-                    });
-                }else{
-                    LOG_W(LOG_TAG,"front video active! close it, fool");
-                }
+                QString binStr = "udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                frontPipeline->setState(QGst::StatePlaying);
             }else if(packet.message.contains(BACK)){
-                if(backVideoThread == nullptr){
-                    backVideoThread = new std::thread([this](){
-                        system("gst-launch-1.0 -v udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
-                        backVideoThread = nullptr;
-                    });
-                }else{
-                    LOG_W(LOG_TAG,"back video active! close it, fool");
-                }
+                QString binStr = "udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                backPipeline->setState(QGst::StatePlaying);
             }else if(packet.message.contains(CLAW)){
-                if(backVideoThread == nullptr){
-                    clawVideoThread = new std::thread([this](){
-                        system("gst-launch-1.0 -v udpsrc port=5557 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink");
-                        clawVideoThread = nullptr;
-                    });
-                }else{
-                    LOG_W(LOG_TAG,"claw video active! close it, fool");
-                }
+                QString binStr = "udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                clawPipeline->setState(QGst::StatePlaying);
             }
         }
     }else if(packet.message == "timeout"){

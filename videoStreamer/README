@@ -1,6 +1,6 @@
 This is a super simplfied version the the old rover streamig video code. The best part
 of this code is the fact that it can stream up to 3 videos at the same time.
-The down side is that I have no idea how in the fuck to make a gui...soooo it uses gstreamer in the terminal to create a window.
+The down side is that I have no idea how in the fuck to make a gui...soooo it uses gstreamers autosink to show the stream.
 
 That being said...This code is kinda hacky right now...I really just wanted to put
 something out there that works. I will clean it up later but for now it sucks.
@@ -9,9 +9,9 @@ Anyways, to use this code, put the videoStreamer on the rover along with the con
 The code will expect the config folder to be under here: /home/soro/videoStreamer
 this is for both the rover and the mission control
 
-One of the things Im still working on, is if you close the videoDisplayer on the mission
-control side, it crashes the videoStreamer on the rover side. It has something to do with 
-the connect function. Im still working on it...
+Right now, it only supports 1 client. Eventually, I will fix it so 2 clients can connect
+by forwarding streams from the first client to the second. You know, to save on broadband
+between us and the rover.
 
 to use the code:
 1)
@@ -28,9 +28,7 @@ start claw
 these are entered into the videoDisplayer terminal
 sometimes, it takes a little for the video window to pop up so give it a little time.
 
-To close it, sorry, its still a little hacky... you have to close the window and type
+best way to close it would be to type stop front or which ever stream you were using,
+because then it will tell the server to kill the stream. Ill fix that later where it 
+wont matter but for now typing is better.
 
-stop front
-
-or which camera you were using to stop the stream and close the window.
-Sorry, Ill figure out how to fix it soon.

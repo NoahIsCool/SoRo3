@@ -5,11 +5,14 @@
 #include <QObject>
 #include <thread>
 #include <iostream>
+#include <Qt5GStreamer/QGst/Pipeline>
+#include <Qt5GStreamer/QGst/Parse>
 
 #include "socket.h"
 #include "soro_global.h"
 #include "configreader.h"
 #include "logger.h"
+#include "player.h"
 
 using namespace soro;
 
@@ -37,9 +40,9 @@ private:
     QTimer *connectTimer;
     QByteArray *initMessage;
     std::thread *inputThread;
-    std::thread *frontVideoThread = nullptr;
-    std::thread *backVideoThread = nullptr;
-    std::thread *clawVideoThread = nullptr;
+    QGst::PipelinePtr frontPipeline;
+    QGst::PipelinePtr backPipeline;
+    QGst::PipelinePtr clawPipeline;
     bool connected;
 
     void processInput();

@@ -12,10 +12,10 @@ MAKEFILE      = Makefile
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_NETWORK_LIB -DQT_DBUS_LIB -DQT_CORE_LIB
+DEFINES       = -DQT_DEPRECATED_WARNINGS -DQT_QML_DEBUG -DQT_MULTIMEDIAWIDGETS_LIB -DQT_MULTIMEDIA_LIB -DQT_NETWORK_LIB -DQT_DBUS_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I../videoDisplayer -I. -I../Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++
+INCPATH       = -I../videoDisplayer -I. -I../Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimediaWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimedia -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtGui -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -isystem /usr/include/libdrm -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++
 QMAKE         = /home/kelly/Qt/5.9.1/gcc_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,8 +37,8 @@ COMPRESS      = gzip -9f
 DISTNAME      = videoDisplayer1.0.0
 DISTDIR = /opt/project-remoteVideo/build-videoDisplayer-Desktop_Qt_5_9_1_GCC_64bit-Debug/.tmp/videoDisplayer1.0.0
 LINK          = g++
-LFLAGS        = -Wl,-rpath,/home/kelly/Qt/5.9.1/gcc_64/lib
-LIBS          = $(SUBLIBS) -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0 -lNetworking -L/home/kelly/Qt/5.9.1/gcc_64/lib -lQt5Network -lQt5DBus -lQt5Core -lpthread 
+LFLAGS        = -Wl,-rpath,/home/kelly/Qt/5.9.1/gcc_64/lib -Wl,-rpath-link,/home/kelly/Qt/5.9.1/gcc_64/lib
+LIBS          = $(SUBLIBS) -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0 -lQt5GStreamerUi-1.0 -lNetworking -L/home/kelly/Qt/5.9.1/gcc_64/lib -lQt5MultimediaWidgets -lpulse-mainloop-glib -lpulse -lglib-2.0 -lQt5Multimedia -lQt5Network -lQt5DBus -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -51,16 +51,18 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../videoDisplayer/main.cpp \
-		../videoDisplayer/videowindow.cpp \
 		../videoDisplayer/configreader.cpp \
 		../videoDisplayer/logger.cpp \
-		../videoDisplayer/mpvlauncher.cpp moc_configreader.cpp \
+		../videoDisplayer/mpvlauncher.cpp \
+		../videoDisplayer/player.cpp \
+		../videoDisplayer/gstreamerutil.cpp moc_configreader.cpp \
 		moc_mpvlauncher.cpp
 OBJECTS       = main.o \
-		videowindow.o \
 		configreader.o \
 		logger.o \
 		mpvlauncher.o \
+		player.o \
+		gstreamerutil.o \
 		moc_configreader.o \
 		moc_mpvlauncher.o
 DIST          = /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/spec_pre.prf \
@@ -233,6 +235,8 @@ DIST          = /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/spec_pre.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/qt.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/resources.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/moc.prf \
+		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/unix/opengl.prf \
+		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/uic.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbuscommon.pri \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbusinterfaces.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbusadaptors.prf \
@@ -243,14 +247,16 @@ DIST          = /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/spec_pre.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/exceptions.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/yacc.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/lex.prf \
-		../videoDisplayer/videoDisplayer.pro ../videoDisplayer/videowindow.h \
-		../videoDisplayer/configreader.h \
+		../videoDisplayer/videoDisplayer.pro ../videoDisplayer/configreader.h \
 		../videoDisplayer/logger.h \
-		../videoDisplayer/mpvlauncher.h ../videoDisplayer/main.cpp \
-		../videoDisplayer/videowindow.cpp \
+		../videoDisplayer/mpvlauncher.h \
+		../videoDisplayer/player.h \
+		../videoDisplayer/gstreamerutil.h ../videoDisplayer/main.cpp \
 		../videoDisplayer/configreader.cpp \
 		../videoDisplayer/logger.cpp \
-		../videoDisplayer/mpvlauncher.cpp
+		../videoDisplayer/mpvlauncher.cpp \
+		../videoDisplayer/player.cpp \
+		../videoDisplayer/gstreamerutil.cpp
 QMAKE_TARGET  = videoDisplayer
 DESTDIR       = 
 TARGET        = videoDisplayer
@@ -432,6 +438,8 @@ Makefile: ../videoDisplayer/videoDisplayer.pro /home/kelly/Qt/5.9.1/gcc_64/mkspe
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/qt.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/resources.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/moc.prf \
+		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/unix/opengl.prf \
+		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/uic.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbuscommon.pri \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbusinterfaces.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbusadaptors.prf \
@@ -443,8 +451,12 @@ Makefile: ../videoDisplayer/videoDisplayer.pro /home/kelly/Qt/5.9.1/gcc_64/mkspe
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/yacc.prf \
 		/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/lex.prf \
 		../videoDisplayer/videoDisplayer.pro \
+		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5MultimediaWidgets.prl \
+		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Multimedia.prl \
 		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Network.prl \
 		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5DBus.prl \
+		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Widgets.prl \
+		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Gui.prl \
 		/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Core.prl
 	$(QMAKE) -o Makefile ../videoDisplayer/videoDisplayer.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/spec_pre.prf:
@@ -617,6 +629,8 @@ Makefile: ../videoDisplayer/videoDisplayer.pro /home/kelly/Qt/5.9.1/gcc_64/mkspe
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/qt.prf:
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/resources.prf:
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/moc.prf:
+/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/unix/opengl.prf:
+/home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/uic.prf:
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbuscommon.pri:
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbusinterfaces.prf:
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/dbusadaptors.prf:
@@ -628,8 +642,12 @@ Makefile: ../videoDisplayer/videoDisplayer.pro /home/kelly/Qt/5.9.1/gcc_64/mkspe
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/yacc.prf:
 /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/lex.prf:
 ../videoDisplayer/videoDisplayer.pro:
+/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5MultimediaWidgets.prl:
+/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Multimedia.prl:
 /home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Network.prl:
 /home/kelly/Qt/5.9.1/gcc_64/lib/libQt5DBus.prl:
+/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Widgets.prl:
+/home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Gui.prl:
 /home/kelly/Qt/5.9.1/gcc_64/lib/libQt5Core.prl:
 qmake: FORCE
 	@$(QMAKE) -o Makefile ../videoDisplayer/videoDisplayer.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
@@ -646,8 +664,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../videoDisplayer/videowindow.h ../videoDisplayer/configreader.h ../videoDisplayer/logger.h ../videoDisplayer/mpvlauncher.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../videoDisplayer/main.cpp ../videoDisplayer/videowindow.cpp ../videoDisplayer/configreader.cpp ../videoDisplayer/logger.cpp ../videoDisplayer/mpvlauncher.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../videoDisplayer/configreader.h ../videoDisplayer/logger.h ../videoDisplayer/mpvlauncher.h ../videoDisplayer/player.h ../videoDisplayer/gstreamerutil.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../videoDisplayer/main.cpp ../videoDisplayer/configreader.cpp ../videoDisplayer/logger.cpp ../videoDisplayer/mpvlauncher.cpp ../videoDisplayer/player.cpp ../videoDisplayer/gstreamerutil.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -679,9 +697,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/data/dummy.cpp
 	g++ -pipe -g -std=gnu++11 -Wall -W -dM -E -o moc_predefs.h /home/kelly/Qt/5.9.1/gcc_64/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_configreader.cpp moc_mpvlauncher.cpp
+compiler_moc_header_make_all: moc_configreader.cpp moc_mpvlauncher.cpp moc_player.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_configreader.cpp moc_mpvlauncher.cpp
+	-$(DEL_FILE) moc_configreader.cpp moc_mpvlauncher.cpp moc_player.cpp
 moc_configreader.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
@@ -752,7 +770,7 @@ moc_configreader.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
 		../videoDisplayer/configreader.h \
 		moc_predefs.h \
 		/home/kelly/Qt/5.9.1/gcc_64/bin/moc
-	/home/kelly/Qt/5.9.1/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++ -I/opt/project-remoteVideo/videoDisplayer -I/opt/project-remoteVideo/Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../videoDisplayer/configreader.h -o moc_configreader.cpp
+	/home/kelly/Qt/5.9.1/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++ -I/opt/project-remoteVideo/videoDisplayer -I/opt/project-remoteVideo/Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimediaWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimedia -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtGui -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../videoDisplayer/configreader.h -o moc_configreader.cpp
 
 moc_mpvlauncher.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
@@ -823,36 +841,78 @@ moc_mpvlauncher.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QApplication \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtguiglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtgui-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qeventloop.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qwindowdefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qwindowdefs_win.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsize.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qcursor.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qdesktopwidget.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qwidget.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmargins.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpaintdevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrect.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpalette.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qcolor.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qrgb.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qrgba64.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qbrush.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qmatrix.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpolygon.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qregion.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatastream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qline.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtransform.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpainterpath.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qimage.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpixelformat.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpixmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfont.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfontmetrics.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfontinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qsizepolicy.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qkeysequence.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qevent.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurlquery.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qvector2d.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtouchdevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qguiapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qinputmethod.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QWidget \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QVBoxLayout \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qboxlayout.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qlayout.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qlayoutitem.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qgridlayout.h \
 		../Networking/socket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QUdpSocket \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qudpsocket.h \
 		../Networking/soro_global.h \
 		../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QFile \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		../videoDisplayer/logger.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
+		../videoDisplayer/player.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTime \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatetime.h \
+		../videoDisplayer/gstreamerutil.h \
 		../videoDisplayer/mpvlauncher.h \
 		moc_predefs.h \
 		/home/kelly/Qt/5.9.1/gcc_64/bin/moc
-	/home/kelly/Qt/5.9.1/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++ -I/opt/project-remoteVideo/videoDisplayer -I/opt/project-remoteVideo/Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../videoDisplayer/mpvlauncher.h -o moc_mpvlauncher.cpp
+	/home/kelly/Qt/5.9.1/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++ -I/opt/project-remoteVideo/videoDisplayer -I/opt/project-remoteVideo/Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimediaWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimedia -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtGui -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../videoDisplayer/mpvlauncher.h -o moc_mpvlauncher.cpp
 
-compiler_moc_source_make_all:
-compiler_moc_source_clean:
-compiler_yacc_decl_make_all:
-compiler_yacc_decl_clean:
-compiler_yacc_impl_make_all:
-compiler_yacc_impl_clean:
-compiler_lex_make_all:
-compiler_lex_clean:
-compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean 
-
-####### Compile
-
-main.o: ../videoDisplayer/main.cpp /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QCoreApplication \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreapplication.h \
+moc_player.cpp: /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
@@ -874,6 +934,102 @@ main.o: ../videoDisplayer/main.cpp /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QC
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearray.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrefcount.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qarraydata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringbuilder.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qalgorithms.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiterator.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhashfunctions.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpair.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearraylist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringlist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qregexp.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringmatcher.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreevent.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qscopedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmetatype.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvarlengtharray.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontainerfwd.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTime \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatetime.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
+		../videoDisplayer/gstreamerutil.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		../videoDisplayer/player.h \
+		moc_predefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/bin/moc
+	/home/kelly/Qt/5.9.1/gcc_64/bin/moc $(DEFINES) --include ./moc_predefs.h -I/home/kelly/Qt/5.9.1/gcc_64/mkspecs/linux-g++ -I/opt/project-remoteVideo/videoDisplayer -I/opt/project-remoteVideo/Networking -I/home/kelly/Qt/5.9.1/gcc_64/include -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimediaWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtMultimedia -I/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork -I/home/kelly/Qt/5.9.1/gcc_64/include/QtDBus -I/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets -I/home/kelly/Qt/5.9.1/gcc_64/include/QtGui -I/home/kelly/Qt/5.9.1/gcc_64/include/QtCore -I. -I/usr/include/c++/6 -I/usr/include/x86_64-linux-gnu/c++/6 -I/usr/include/c++/6/backward -I/usr/lib/gcc/x86_64-linux-gnu/6/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/6/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include ../videoDisplayer/player.h -o moc_player.cpp
+
+compiler_moc_source_make_all:
+compiler_moc_source_clean:
+compiler_uic_make_all:
+compiler_uic_clean:
+compiler_yacc_decl_make_all:
+compiler_yacc_decl_clean:
+compiler_yacc_impl_make_all:
+compiler_yacc_impl_clean:
+compiler_lex_make_all:
+compiler_lex_clean:
+compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean 
+
+####### Compile
+
+main.o: ../videoDisplayer/main.cpp /home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QApplication \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtguiglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtcore-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsystemdetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qprocessordetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcompilerdetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtypeinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsysinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlogging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qflags.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasicatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qgenericatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_msvc.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobalstatic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtgui-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreapplication.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearray.h \
@@ -900,81 +1056,90 @@ main.o: ../videoDisplayer/main.cpp /home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QC
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontainerfwd.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qeventloop.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QProcessEnvironment \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qprocess.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qwindowdefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qwindowdefs_win.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsize.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qcursor.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qdesktopwidget.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qwidget.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmargins.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpaintdevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrect.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpalette.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qcolor.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qrgb.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qrgba64.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qbrush.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qmatrix.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpolygon.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qregion.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatastream.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qline.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtransform.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpainterpath.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qimage.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpixelformat.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpixmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
-		../videoDisplayer/videowindow.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimerEvent \
-		../videoDisplayer/mpvlauncher.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfont.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfontmetrics.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfontinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qsizepolicy.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qkeysequence.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qevent.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurlquery.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qvector2d.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtouchdevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qguiapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qinputmethod.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QProcessEnvironment \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qprocess.h \
+		../videoDisplayer/player.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTime \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatetime.h \
+		../videoDisplayer/gstreamerutil.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		../videoDisplayer/mpvlauncher.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QWidget \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QVBoxLayout \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qboxlayout.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qlayout.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qlayoutitem.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qgridlayout.h \
 		../Networking/socket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QUdpSocket \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qudpsocket.h \
 		../Networking/soro_global.h \
 		../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QFile \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
-		../videoDisplayer/logger.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString
+		../videoDisplayer/logger.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../videoDisplayer/main.cpp
-
-videowindow.o: ../videoDisplayer/videowindow.cpp ../videoDisplayer/videowindow.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimerEvent \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreevent.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtcore-config.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsystemdetection.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qprocessordetection.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcompilerdetection.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtypeinfo.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsysinfo.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlogging.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qflags.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasicatomic.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_bootstrap.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qgenericatomic.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_cxx11.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_msvc.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobalstatic.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearray.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrefcount.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qarraydata.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringbuilder.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs_impl.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o videowindow.o ../videoDisplayer/videowindow.cpp
 
 configreader.o: ../videoDisplayer/configreader.cpp ../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
@@ -1148,18 +1313,225 @@ mpvlauncher.o: ../videoDisplayer/mpvlauncher.cpp ../videoDisplayer/mpvlauncher.h
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QObject \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QApplication \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qtwidgetsglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtguiglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtgui-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qtwidgets-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qeventloop.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qwindowdefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qwindowdefs_win.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsize.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qcursor.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qdesktopwidget.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qwidget.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmargins.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpaintdevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrect.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpalette.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qcolor.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qrgb.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qrgba64.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qbrush.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qmatrix.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpolygon.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qregion.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatastream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qline.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtransform.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpainterpath.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qimage.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpixelformat.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qpixmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfont.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfontmetrics.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qfontinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qsizepolicy.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qkeysequence.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qevent.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurlquery.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qvector2d.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qtouchdevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qguiapplication.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtGui/qinputmethod.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QWidget \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/QVBoxLayout \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qboxlayout.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qlayout.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qlayoutitem.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtWidgets/qgridlayout.h \
 		../Networking/socket.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QUdpSocket \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qudpsocket.h \
 		../Networking/soro_global.h \
 		../videoDisplayer/configreader.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QFile \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
 		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTextStream \
 		../videoDisplayer/logger.h \
-		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
+		../videoDisplayer/player.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTime \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatetime.h \
+		../videoDisplayer/gstreamerutil.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mpvlauncher.o ../videoDisplayer/mpvlauncher.cpp
+
+player.o: ../videoDisplayer/player.cpp ../videoDisplayer/player.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTimer \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtimer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtcore-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsystemdetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qprocessordetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcompilerdetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtypeinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsysinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlogging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qflags.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasicatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qgenericatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_msvc.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobalstatic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasictimer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearray.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrefcount.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qarraydata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringbuilder.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qalgorithms.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiterator.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhashfunctions.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpair.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearraylist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringlist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qregexp.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringmatcher.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreevent.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qscopedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmetatype.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvarlengtharray.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontainerfwd.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QTime \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdatetime.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
+		../videoDisplayer/gstreamerutil.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QDir \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdir.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfileinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfile.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qfiledevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QUrl \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qurlquery.h \
+		moc_player.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o player.o ../videoDisplayer/player.cpp
+
+gstreamerutil.o: ../videoDisplayer/gstreamerutil.cpp ../videoDisplayer/gstreamerutil.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/QString \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstring.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qchar.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig-bootstrapped.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qconfig.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtcore-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsystemdetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qprocessordetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcompilerdetection.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtypeinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsysinfo.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlogging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qflags.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbasicatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_bootstrap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qgenericatomic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_cxx11.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qatomic_msvc.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qglobalstatic.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmutex.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnumeric.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qversiontagging.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearray.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qrefcount.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qnamespace.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qarraydata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringbuilder.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/QHostAddress \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qhostaddress.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetworkglobal.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qtnetwork-config.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpair.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qshareddata.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhash.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiterator.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qalgorithms.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qhashfunctions.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qbytearraylist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringlist.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qregexp.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qstringmatcher.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtNetwork/qabstractsocket.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qiodevice.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobjectdefs_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcoreevent.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qscopedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmetatype.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvarlengtharray.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontainerfwd.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qobject_impl.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qdebug.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qmap.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qtextstream.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qlocale.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvariant.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qvector.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qpoint.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qset.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qcontiguouscache.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer.h \
+		/home/kelly/Qt/5.9.1/gcc_64/include/QtCore/qsharedpointer_impl.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o gstreamerutil.o ../videoDisplayer/gstreamerutil.cpp
 
 moc_configreader.o: moc_configreader.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_configreader.o moc_configreader.cpp

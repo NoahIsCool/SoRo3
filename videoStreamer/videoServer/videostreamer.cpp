@@ -32,6 +32,10 @@ VideoStreamer::VideoStreamer(QString configFile){
         LOG_W(LOG_TAG,"missig config file! Please put one at /home/soro/videoStreamer/conf/videoStreamer.conf");
     }
 
+    frontPipeline = QGst::Pipeline::create();
+    backPipeline = QGst::Pipeline::create();
+    clawPipeline = QGst::Pipeline::create();
+
     connected = false;
     heartbeat = new socket(HEARTBEAT_PORT,this);
     heartbeatTimeout = new QTimer(this);
@@ -39,7 +43,6 @@ VideoStreamer::VideoStreamer(QString configFile){
     control = new socket(CONTROL_PORT,this);
 
     //FIXME: segfault because the pipelines are created after the connect functions... need to figure out how to still use them
-    connect(heartbeat,SIGNAL(hasData(DataPacket)),this,SLOT(onHeartbeat(DataPacket)));
     connect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
     connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
     LOG_I(LOG_TAG,"setup sockets");
@@ -65,6 +68,7 @@ void VideoStreamer::onMessage(DataPacket packet){
         data.append(INIT);
         connected = true;
         LOG_I(LOG_TAG,"connected");
+        connect(heartbeat,SIGNAL(hasData(DataPacket)),this,SLOT(onHeartbeat(DataPacket)));
     }else if(packet.message.contains(START_CAMERA)){
         if(packet.message.contains(FRONT)){
             LOG_I(LOG_TAG,"starting front");
@@ -126,15 +130,26 @@ void VideoStreamer::onTimeout(){
     LOG_W(LOG_TAG,"timed out");
     connected = false;
     shutdownAllCameras();
+    heartbeatTimeout->stop();
 }
 
 void VideoStreamer::shutdownAllCameras(){
-    frontPipeline->setState(QGst::StatePaused);
-    frontPipeline->setState(QGst::StateNull);
-    backPipeline->setState(QGst::StatePaused);
-    backPipeline->setState(QGst::StateNull);
-    clawPipeline->setState(QGst::StatePaused);
-    clawPipeline->setState(QGst::StateNull);
+    stopCamera(FRONT);
+    stopCamera(BACK);
+    stopCamera(CLAW);
+
+    //shutdown is only called when we disconnect.
+    //we only have to do this when we disconnect.
+    frontPipeEmpty = true;
+    backPipeEmpty = true;
+    clawPipeEmpty = true;
+    frontPipeline = QGst::Pipeline::create();
+    backPipeline = QGst::Pipeline::create();
+    clawPipeline = QGst::Pipeline::create();
+    disconnect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
+    disconnect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
+    connect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
+    connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
 }
 
 void VideoStreamer::stopCamera(QString camera){
@@ -154,40 +169,54 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
     QString clientAddress = client.toString();
     if(camera == FRONT){
         if(frontDevice != "NOT_FOUND"){
-            LOG_I(LOG_TAG,"found Front Device!");
-            QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
-            //binStr += "! textoverlay text=\"Hello\" ! ffmpegcolorspace !";
-            frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
-            QGlib::connect(frontPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
-            LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
-            frontPipeline->bus()->addSignalWatch();
-            QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(FRONT_CAMERA_PORT) +" caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
-            LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+            if(frontPipeEmpty){
+                LOG_I(LOG_TAG,"found Front Device!");
+                QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
+                //frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
+                frontPipeline->add(source);
+                QGlib::connect(frontPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
+                LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
+                frontPipeline->bus()->addSignalWatch();
+                QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(FRONT_CAMERA_PORT) +" caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+                frontPipeEmpty = false;
+            }
             frontPipeline->setState(QGst::StatePlaying);
         }
     }else if(camera == BACK){
         if(backDevice != "NOT_FOUND"){
-            LOG_I(LOG_TAG,"found Back Device!");
-            QString binStr = "v4l2src device=/dev/" + backDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
-            backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
-            QGlib::connect(backPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
-            LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
-            backPipeline->bus()->addSignalWatch();
-            QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(BACK_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
-            LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+            if(backPipeEmpty){
+                LOG_I(LOG_TAG,"found Back Device!");
+                QString binStr = "v4l2src device=/dev/" + backDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
+                //backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
+                backPipeline->add(source);
+                QGlib::connect(backPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
+                LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
+                backPipeline->bus()->addSignalWatch();
+                QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(BACK_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+                backPipeEmpty = false;
+            }
             backPipeline->setState(QGst::StatePlaying);
         }
     }else if(camera == CLAW){
         if(clawDevice != "NOT_FOUND"){
-            LOG_I(LOG_TAG,"found Claw Device!");
-            QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
-            clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
-            QGlib::connect(clawPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
-            LOG_I(LOG_TAG,"\n\n");
-            LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
-            clawPipeline->bus()->addSignalWatch();
-            QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(CLAW_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
-            LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+            if(clawPipeEmpty){
+                LOG_I(LOG_TAG,"found Claw Device!");
+                QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
+                //clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
+                clawPipeline->add(source);
+                QGlib::connect(clawPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
+                LOG_I(LOG_TAG,"\n\n");
+                LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
+                clawPipeline->bus()->addSignalWatch();
+                QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(CLAW_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+                clawPipeEmpty = false;
+            }
             clawPipeline->setState(QGst::StatePlaying);
         }
     }

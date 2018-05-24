@@ -40,6 +40,8 @@ void socket::sendUDP(QHostAddress to,QByteArray Data,int p)
     // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
     //                      const QHostAddress & host, quint16 port)
     socketOut->writeDatagram(Data, to, p);
+    //FIXME: change code to use this instead
+    //socketOut->writeDatagram(data,len(data),to,p);
     //socketOut->writeDatagram(Data, QHostAddress::LocalHost, 1234);
 
 }

@@ -1,9 +1,9 @@
 QT -= gui
-QT += network core dbus
+QT += network core dbus widgets multimediawidgets
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
-CONFIG += pkgconfig
+CONFIG += link pkgconfig
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -17,19 +17,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += main.cpp \
-    videowindow.cpp \
     configreader.cpp \
     logger.cpp \
-    mpvlauncher.cpp
+    mpvlauncher.cpp \
+    player.cpp \
+    gstreamerutil.cpp
 
 HEADERS += \
-    videowindow.h \
     configreader.h \
     logger.h \
-    mpvlauncher.h
+    mpvlauncher.h \
+    player.h \
+    gstreamerutil.h
 
 INCLUDEPATH += ../Networking/
 
-PKGCONFIG += QtGStreamer-1.0 Qt5GLib-2.0
+PKGCONFIG += QtGStreamer-1.0 QtGLib-2.0 QtGstreamerUtils-1.0 QtGStreamerUi-1.0
 
-LIBS += -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0 -lNetworking
+LIBS += -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0 -lQt5GStreamerUi-1.0 -lNetworking
