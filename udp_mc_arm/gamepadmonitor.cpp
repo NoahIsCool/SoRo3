@@ -148,18 +148,46 @@ void GamepadMonitor::onButtonDown(bool pressed){
 }
 
 void GamepadMonitor::sendUDP(){
-    // ***** all numbers are now in INCHES *****
-
     // control the coordinate based on controller input
-    // this is sloppy and should really be updated (its a number times a boolean lol)
     // the number 0.2 below means its top speed is 0.2 inches/second
-    float temp_u = coord_u+(left_y_axis*0.2)*(abs(left_y_axis) > .05);
-    float temp_v = coord_v-(right_y_axis*0.2)*(abs(right_y_axis) > .05);
+    float temp_u = coord_u;
+    float temp_v = coord_v;
+    if(abs(left_x_axis) > .05)
+        temp_u += left_x_axis*0.2;
+    if(abs(left_y_axis) > .05)
+        temp_v -= left_y_axis*0.2;
+
+    //make sure it stays in bounds:
+    // x^2 + y^2 <= 956.4557
+    if( hypot(temp_u, temp_v) > 30.93 )
+    {
+        temp_u += temp_u*((30.93/hypot(temp_u, temp_v))-1);
+        temp_v += temp_v*((30.93/hypot(temp_u, temp_v))-1);
+    }
+    // x^2 + y^2 >= 427.3300
+    if( hypot(temp_u, temp_v) < 20.67 )
+    {
+        temp_u += temp_u*((20.67/hypot(temp_u, temp_v))-1);
+        temp_v += temp_v*((20.67/hypot(temp_u, temp_v))-1);
+    }
+    // (x-14.8678)^2 + (y-1.9870)^2 <= 324.3601
+    if( hypot(temp_u-14.8678, temp_v-1.9870) > 18.01 )
+    {
+        temp_u += (temp_u-14.8678)*((18.01/hypot((temp_u-14.8678), (temp_v-1.9870)))-1);
+        temp_v += (temp_v-1.9870)*((18.01/hypot((temp_u-14.8678), (temp_v-1.9870)))-1);
+    }
+    // (x-1.2187)^2 + (y-14.9504)^2 >= 324.3601
+    if( hypot(temp_u-1.2187, temp_v-14.9504) < 18.01 )
+    {
+        temp_u += (temp_u-1.2187)*((18.01/hypot((temp_u-1.2187), (temp_v-14.9504)))-1);
+        temp_v += (temp_v-14.9504)*((18.01/hypot((temp_u-1.2187), (temp_v-14.9504)))-1);
+    }
+    emit clawPosUpdated(temp_u, temp_v);
 
     // calculate the length of each actuator based on the cartesian coordinate (u,v)
     float hypot2 = pow(temp_u, 2) + pow(temp_v, 2);
-    float x_len = sqrt(160.6811-77.8123*cos( acos( (31.3201-hypot2)/(-30.0*sqrt(hypot2)) ) + atan(temp_v/temp_u)+.40602 ));
-    float y_len = sqrt(134.8337-(85.8577*cos(2.91186-acos((hypot2-481.3201)/(-480.3)))));
+    float x_len = sqrt(160.6811-77.8123*cos( acos( (99.3601-hypot2)/(-30.0*sqrt(hypot2)) ) + atan(temp_v/temp_u)+.40602 ));
+    float y_len = sqrt(180.5948-(100.9791*cos(2.96241-acos((hypot2-549.3601)/(-540.3)))));
 
     // convert inches to degrees for the servos
     // max: 13.62 in = 135 deg
@@ -168,11 +196,9 @@ void GamepadMonitor::sendUDP(){
     elbow_length = uint8_t(round((y_len-9.69)*(95/3.93))+40);
 
     //only update the position if its physically possible for the claw to be there
-    if(x_len > 9.69 && x_len < 13.62 && y_len > 9.69 && y_len < 13.62)
+    if(true)//x_len > 9.69 && x_len < 13.62 && y_len > 9.69 && y_len < 13.62)
     {
-        if(abs(left_y_axis) > .05)
             coord_u = temp_u;
-        if(abs(right_y_axis) > .05)
             coord_v = temp_v;
     }
 

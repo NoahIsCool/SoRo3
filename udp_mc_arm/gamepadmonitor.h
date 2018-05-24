@@ -39,8 +39,8 @@ private:
     float left_y_axis;
     float right_x_axis;
     float right_y_axis;
-    float coord_u = 10; //we will have to see what these are
-    float coord_v = -10;
+    float coord_u = 18.5; //we will have to see what these are
+    float coord_v = 9.5;
 
 public slots:
     void onXAxis(double value);
@@ -54,6 +54,9 @@ public slots:
     void onButtonDown(bool pressed);
     void sendUDP();
     void message(QByteArray arr);
+
+signals:
+    void clawPosUpdated(float x, float y);
 };
 
 #endif // GAMEPADMONITOR_H
