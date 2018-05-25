@@ -61,6 +61,7 @@ private:
     bool primaryAudioPipelineEmpty = true;
     bool secondaryAudioPipelineEmpty = true;
     QByteArray nope;
+    QString caps = "";
 
     void onBusMessage(const QGst::MessagePtr &message);
     void shutdownClientCameras(QHostAddress);

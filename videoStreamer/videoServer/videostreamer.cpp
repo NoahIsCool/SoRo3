@@ -24,6 +24,18 @@ VideoStreamer::VideoStreamer(QString configFile){
         frontDevice = reader.find("frontCamera");
         backDevice = reader.find("backCamera");
         clawDevice = reader.find("clawCamera");
+
+        if(frontDevice == "NOT_FOUND"){
+            LOG_I(LOG_TAG,"cannot find front camera device. Unpredicted results will occure if you use this camera");
+        }
+
+        if(backDevice == "NOT_FOUND"){
+            LOG_I(LOG_TAG,"cannot find back camera device. Unpredicted results will occure if you use this camera");
+        }
+
+        if(clawDevice == "NOT_FOUND"){
+            LOG_I(LOG_TAG,"cannot find claw camera device. Unpredicted results will occure if you use this camera");
+        }
     }else{
         QFile test("/dev/video0");
         if(test.exists()){
@@ -199,7 +211,8 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
     if(camera == FRONT){
         if(frontDevice != "NOT_FOUND"){
                 LOG_I(LOG_TAG,"found Front Device!");
-                QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
+                //QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=20/1 ! videoscale ! videoconvert ! x264enc threads=4 tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
+                QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=20/1 ! x264enc threads=8 bitrate=500 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
                 //frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
                 frontPipeline->add(source);
@@ -215,7 +228,8 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
         if(backDevice != "NOT_FOUND"){
             if(backPipeEmpty){
                 LOG_I(LOG_TAG,"found Back Device!");
-                QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
+                //QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=20/1 ! videoscale ! videoconvert ! x264enc threads=4 tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
+                QString binStr = "v4l2src device=/dev/" + backDevice + " ! video/x-raw,framerate=20/1 ! x264enc threads=8 bitrate=500 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
                 //backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
                 backPipeline->add(source);
@@ -234,7 +248,8 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
         if(clawDevice != "NOT_FOUND"){
             if(clawPipeEmpty){
                 LOG_I(LOG_TAG,"found Claw Device!");
-                QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
+                //QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=20/1 ! videoscale ! videoconvert ! x264enc threads=4 tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
+                QString binStr = "v4l2src device=/dev/" + clawDevice + " ! video/x-raw,framerate=20/1 ! x264enc threads=8 bitrate=500 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
                 //clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
                 clawPipeline->add(source);
