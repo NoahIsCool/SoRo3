@@ -20,6 +20,10 @@
 #include "logger.h"
 #include "configreader.h"
 
+struct Camera{
+    QString device;
+    QHostAddress client;
+};
 
 class VideoStreamer : public QObject
 {
@@ -52,8 +56,10 @@ private:
     bool frontPipeEmpty = true;
     bool backPipeEmpty = true;
     bool clawPipeEmpty = true;
+    QByteArray nope;
 
     void onBusMessage(const QGst::MessagePtr &message);
+    void shutdownClientCameras(QHostAddress);
     void shutdownAllCameras();
     void startCamera(QString camera,QHostAddress clientAddress);
     void stopCamera(QString camera);

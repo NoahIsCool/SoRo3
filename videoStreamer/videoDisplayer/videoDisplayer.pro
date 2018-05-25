@@ -28,7 +28,8 @@ HEADERS += \
     logger.h \
     mpvlauncher.h \
     player.h \
-    gstreamerutil.h
+    gstreamerutil.h \
+    multisink.h
 
 INCLUDEPATH += ../Networking/
 

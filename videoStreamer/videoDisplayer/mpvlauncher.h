@@ -13,6 +13,7 @@
 #include "configreader.h"
 #include "logger.h"
 #include "player.h"
+#include "multisink.h"
 
 using namespace soro;
 
@@ -34,6 +35,8 @@ public slots:
 private:
     const QString LOG_TAG = "Video Displayer";
     QHostAddress *rover;
+    QHostAddress *forwardedTo;
+    //socket *forwardedTo;
     socket *control;
     socket *heartbeat;
     QTimer *heartbeatTimer;
@@ -41,9 +44,13 @@ private:
     QByteArray *initMessage;
     std::thread *inputThread;
     QGst::PipelinePtr frontPipeline;
+    QGst::PipelinePtr displayPipeline;
     QGst::PipelinePtr backPipeline;
     QGst::PipelinePtr clawPipeline;
+    MultiSink *frontSink;
     bool connected;
+    bool isMaster;
+    QHostAddress *master;
 
     void processInput();
 };

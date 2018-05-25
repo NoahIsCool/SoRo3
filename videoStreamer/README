@@ -13,6 +13,26 @@ Right now, it only supports 1 client. Eventually, I will fix it so 2 clients can
 by forwarding streams from the first client to the second. You know, to save on broadband
 between us and the rover.
 
+To build:
+go to the scripts folder and run ./build
+it should handle everything for you but if it doesnt, this is what you need to do
+first make sure qt5 is installed on the up board.
+then cd into the networking folder. We want to build this first.
+run 'qmake Networking.pro -r -spec linux-g++' to generate the make file
+then run 'make' to compile it
+and finally run 'sudo make install' to install it.
+
+Next, to build the videoStreamer.
+cd into the videoDisplayer folder.
+run 'qmake videoDisplayer.pro -r -spec linux-g++' to generate the makefile for it
+the run 'make'
+and it should be good to go.
+
+If any of this fails, try to make sure that qt5 is installed and qt5gstreamer.
+those are the only other dependencies you need for this project.
+If you are compiling the videoDisplayer, just open it on qt creator. Its soo much easier.
+videoDisplayer also needs the Networking project so open that in qt creator first and build it.
+
 to use the code:
 1)
 lauch both the videoStreamer on the rover and the videoDisplayer on the mission control.

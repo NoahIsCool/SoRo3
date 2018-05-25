@@ -18,6 +18,7 @@ const QString CLAW    = "CLAW";
 
 
 const QString INIT            = "INIT";
+const QString FORWARD         = "FORWARD";
 const QString CAMERA_TOGGLE   = "CAMERA_TOGGLE";
 const QString HEARTBEAT       = "HEARTBEAT";
 const QString EXIT            = "EXIT";

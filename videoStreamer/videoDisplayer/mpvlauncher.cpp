@@ -11,11 +11,18 @@ void MPVLauncher::start()
     ConfigReader reader("/home/soro/videoStreamer/config/missionControl.conf");
     if(!reader.exists()){
         LOG_W(LOG_TAG,"no config file found using defaults\nPlease put a config file at /home/soro/videoStreamer/config/missionControl.conf");
-        rover = new QHostAddress("192.168.1.13");
+        rover = new QHostAddress("192.168.1.183");
 
+    }else{
+        if(reader.find("isMaster") == "true"){
+            rover = new QHostAddress(reader.find("roverAddress"));
+            isMaster = true;
+        }else{
+            master = new QHostAddress(reader.find("masterAddress"));
+            isMaster = false;
+        }
     }
     connected = false;
-    rover = new QHostAddress(reader.find("roverAddress"));
     control = new socket(CONTROL_CLIENT_PORT,this);
     heartbeat = new socket(HEARTBEAT_CLIENT_PORT,this);
     initMessage = new QByteArray;
@@ -119,6 +126,14 @@ void MPVLauncher::onMessage(DataPacket packet){
             if(packet.message.contains(FRONT)){
                 QString binStr = "udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                /*QString caps = "application/x-raw, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96";
+                QString inBin = "udpsrc port=5555 ! rtph264depay ! decodebin ! videoconvert ! appsink name=\"MultiSink\"";// + caps;
+                frontPipeline = QGst::Parse::launch(inBin).dynamicCast<QGst::Pipeline>();
+                frontSink->setElement(frontPipeline->getElementByName("MultiSink"));
+                QString displayBin = "appsrc name=\"MultiSink\"" + caps + "autovideosink";
+                displayPipeline = QGst::Parse::launch(displayBin).dynamicCast<QGst::Pipeline>();
+                frontPipeline->setState(QGst::StatePlaying);
+                displayPipeline->setState(QGst::StatePlaying);*/
                 frontPipeline->setState(QGst::StatePlaying);
             }else if(packet.message.contains(BACK)){
                 QString binStr = "udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
@@ -130,11 +145,8 @@ void MPVLauncher::onMessage(DataPacket packet){
                 clawPipeline->setState(QGst::StatePlaying);
             }
         }
-    }else if(packet.message == "timeout"){
-        connected = false;
-        LOG_E(LOG_TAG,"DISCONNECTED");
-        heartbeatTimer->stop();
-        connectTimer->start(1000);
+    }else if(packet.message.contains("CAMERA_IN_USE")){
+        LOG_E(LOG_TAG,"someone is already using that camera");
     }else{
         LOG_W(LOG_TAG,"got some shit..." + packet.message);
     }

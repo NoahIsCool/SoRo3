@@ -28,6 +28,7 @@ VideoStreamer::VideoStreamer(QString configFile){
         QFile test("/dev/video0");
         if(test.exists()){
             frontDevice = "video0";
+            backDevice = "video0";
         }
         LOG_W(LOG_TAG,"missig config file! Please put one at /home/soro/videoStreamer/conf/videoStreamer.conf");
     }
@@ -39,6 +40,7 @@ VideoStreamer::VideoStreamer(QString configFile){
     connected = false;
     heartbeat = new socket(HEARTBEAT_PORT,this);
     heartbeatTimeout = new QTimer(this);
+    nope.append("CAMERA_IN_USE");
 
     control = new socket(CONTROL_PORT,this);
 
@@ -71,23 +73,35 @@ void VideoStreamer::onMessage(DataPacket packet){
         connect(heartbeat,SIGNAL(hasData(DataPacket)),this,SLOT(onHeartbeat(DataPacket)));
     }else if(packet.message.contains(START_CAMERA)){
         if(packet.message.contains(FRONT)){
-            LOG_I(LOG_TAG,"starting front");
-            startCamera(FRONT,packet.sender);
-            data.append(CAMERA_TOGGLE);
-            data.append(CAMERA_STARTED);
-            data.append(FRONT);
+            if(frontPipeEmpty){
+                LOG_I(LOG_TAG,"starting front");
+                startCamera(FRONT,packet.sender);
+                data.append(CAMERA_TOGGLE);
+                data.append(CAMERA_STARTED);
+                data.append(FRONT);
+            }else{
+                control->sendUDP(packet.sender,nope,CONTROL_CLIENT_PORT);
+            }
         }else if(packet.message.contains(BACK)){
-            LOG_I(LOG_TAG,"starting back");
-            startCamera(BACK,packet.sender);
-            data.append(CAMERA_TOGGLE);
-            data.append(CAMERA_STARTED);
-            data.append(BACK);
+            if(backPipeEmpty){
+                LOG_I(LOG_TAG,"starting back");
+                startCamera(BACK,packet.sender);
+                data.append(CAMERA_TOGGLE);
+                data.append(CAMERA_STARTED);
+                data.append(BACK);
+            }else{
+                control->sendUDP(packet.sender,nope,CONTROL_CLIENT_PORT);
+            }
         }else if(packet.message.contains(CLAW)){
-            LOG_I(LOG_TAG,"starting claw");
-            startCamera(CLAW,packet.sender);
-            data.append(CAMERA_TOGGLE);
-            data.append(CAMERA_STARTED);
-            data.append(CLAW);
+            if(clawPipeEmpty){
+                LOG_I(LOG_TAG,"starting claw");
+                startCamera(CLAW,packet.sender);
+                data.append(CAMERA_TOGGLE);
+                data.append(CAMERA_STARTED);
+                data.append(CLAW);
+            }else{
+                control->sendUDP(packet.sender,nope,CONTROL_CLIENT_PORT);
+            }
         }
     }else if(packet.message.contains(STOP_CAMERA)){
         if(packet.message.contains(FRONT)){
@@ -107,7 +121,7 @@ void VideoStreamer::onMessage(DataPacket packet){
             data.append(CLAW);
         }
     }else if(packet.message.contains(EXIT)){
-        shutdownAllCameras();
+        shutdownClientCameras(packet.sender);
     }
     LOG_I(LOG_TAG,"sending message to " + packet.sender.toString() + " at " + QString::number(CONTROL_CLIENT_PORT));
     control->sendUDP(packet.sender,data,CONTROL_CLIENT_PORT);
@@ -152,16 +166,23 @@ void VideoStreamer::shutdownAllCameras(){
     connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
 }
 
+void VideoStreamer::shutdownClientCameras(QHostAddress){
+
+}
+
 void VideoStreamer::stopCamera(QString camera){
     if(camera == FRONT){
         frontPipeline->setState(QGst::StatePaused);
         frontPipeline->setState(QGst::StateNull);
+        frontPipeEmpty = true;
     }else if(camera == BACK){
         backPipeline->setState(QGst::StatePaused);
         backPipeline->setState(QGst::StateNull);
+        backPipeEmpty = true;
     }else if(camera == CLAW){
         clawPipeline->setState(QGst::StatePaused);
         clawPipeline->setState(QGst::StateNull);
+        clawPipeEmpty = true;
     }
 }
 
@@ -169,7 +190,6 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
     QString clientAddress = client.toString();
     if(camera == FRONT){
         if(frontDevice != "NOT_FOUND"){
-            if(frontPipeEmpty){
                 LOG_I(LOG_TAG,"found Front Device!");
                 QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(FRONT_CAMERA_PORT);
                 //frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
@@ -181,14 +201,13 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
                 QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(FRONT_CAMERA_PORT) +" caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
                 frontPipeEmpty = false;
-            }
-            frontPipeline->setState(QGst::StatePlaying);
+                frontPipeline->setState(QGst::StatePlaying);
         }
     }else if(camera == BACK){
         if(backDevice != "NOT_FOUND"){
             if(backPipeEmpty){
                 LOG_I(LOG_TAG,"found Back Device!");
-                QString binStr = "v4l2src device=/dev/" + backDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
+                QString binStr = "v4l2src device=/dev/" + frontDevice + " ! video/x-raw,framerate=30/1 ! videoscale ! videoconvert ! x264enc tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(BACK_CAMERA_PORT);
                 //backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
                 backPipeline->add(source);
@@ -198,8 +217,10 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
                 QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(BACK_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
                 backPipeEmpty = false;
+                backPipeline->setState(QGst::StatePlaying);
+            }else{
+                control->sendUDP(client,nope,CONTROL_CLIENT_PORT);
             }
-            backPipeline->setState(QGst::StatePlaying);
         }
     }else if(camera == CLAW){
         if(clawDevice != "NOT_FOUND"){
@@ -216,8 +237,10 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
                 QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(CLAW_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
                 clawPipeEmpty = false;
+                clawPipeline->setState(QGst::StatePlaying);
+            }else{
+                control->sendUDP(client,nope,CONTROL_CLIENT_PORT);
             }
-            clawPipeline->setState(QGst::StatePlaying);
         }
     }
 }
