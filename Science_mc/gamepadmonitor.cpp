@@ -136,7 +136,7 @@ void GamepadMonitor::sendUDP(){
     out.append(char(actuatorSpeed));
     out.append(char(spin));
     out.append(char(overdrive));
-    out.append(char(fan));
+    out.append(fan);
     int hash = (actuator+actuatorSpeed+spin+overdrive+fan)/5;
     out.append(char(hash));
 

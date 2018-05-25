@@ -38,8 +38,8 @@ private:
     int spin = 0;
     int actuator;
     const int actuatorSpeed = 240;
-    int fan = 0;
-    const int fanSpeed = 100;//out of 255
+    uint8_t fan = 0;
+    const uint8_t fanSpeed = 34;//out of 90
 
 
     float phi;// for the wrist
