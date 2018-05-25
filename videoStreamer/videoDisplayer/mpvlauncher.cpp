@@ -38,7 +38,7 @@ void MPVLauncher::start()
 void MPVLauncher::processInput(){
     QByteArray message;
     QString option = "";
-    std::string help = "Commands: \tCameras \nstart \t\tfront \nstop \t\tback \nhelp \t\tclaw \nexit\n";
+    std::string help = "Commands: \tAvailable Cameras: \nstart \t\tfront \nstop \t\tback \nhelp \t\tclaw \nexit \n\t\taudio";
     std::cout << help << std::endl;
     while(true){
         std::string raw;
@@ -59,6 +59,9 @@ void MPVLauncher::processInput(){
                 message.append(CAMERA_TOGGLE);
                 message.append(START_CAMERA);
                 message.append(CLAW);
+            }else if(option.contains("audio")){
+                message.append(AUDIO_TOGGLE);
+                message.append(START_AUDIO);
             }
         }else if(option.startsWith("stop")){
             if(option.contains("front")){
@@ -79,6 +82,9 @@ void MPVLauncher::processInput(){
                 message.append(CLAW);
                 clawPipeline->setState(QGst::StatePaused);
                 clawPipeline->setState(QGst::StateNull);
+            }else if(option.contains("audio")){
+                message.append(AUDIO_TOGGLE);
+                message.append(START_AUDIO);
             }
         }else if(option == "help"){
             std::cout << help << std::endl;
@@ -140,6 +146,14 @@ void MPVLauncher::onMessage(DataPacket packet){
                 clawPipeline->setState(QGst::StatePlaying);
             }
         }
+    }else if(packet.message.startsWith(AUDIO_TOGGLE)){
+        if(packet.message.contains(AUDIO_STARTED)){
+            LOG_I(LOG_TAG,"starting audio");
+            QString binStr = "udpsrc port=" + QString::number(AUDIO_PORT) + " caps=\"application/x-rtp,channels=(int)2,format=(string)S16LE,media=(string)audio,payload=(int)96,clock-rate=(int)44100,encoding-name=(string)L24\" ! rtpL24depay ! audioconvert ! autoaudiosink";
+            audioPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+            audioPipeline->setState(QGst::StatePlaying);
+        }
+
     }else if(packet.message.contains("CAMERA_IN_USE")){
         LOG_E(LOG_TAG,"someone is already using that camera");
     }else{

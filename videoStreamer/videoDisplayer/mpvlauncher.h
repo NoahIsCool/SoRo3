@@ -45,6 +45,7 @@ private:
     QGst::PipelinePtr displayPipeline;
     QGst::PipelinePtr backPipeline;
     QGst::PipelinePtr clawPipeline;
+    QGst::PipelinePtr audioPipeline;
     MultiSink *frontSink;
     bool connected;
 

@@ -36,6 +36,8 @@ VideoStreamer::VideoStreamer(QString configFile){
     frontPipeline = QGst::Pipeline::create();
     backPipeline = QGst::Pipeline::create();
     clawPipeline = QGst::Pipeline::create();
+    primaryAudioPipeline = QGst::Pipeline::create();
+    secondaryAudioPipeline = QGst::Pipeline::create();
 
     connected = false;
     heartbeat = new socket(HEARTBEAT_PORT,this);
@@ -48,12 +50,6 @@ VideoStreamer::VideoStreamer(QString configFile){
     connect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
     connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
     LOG_I(LOG_TAG,"setup sockets");
-
-    //eventually want to load this from the config file but for now, just enter it
-    //this loads the default profile. Unless you have a damn good reason, dont use a customized version
-    //not really using this right now but I would like to add it eventually...
-    profile = new GStreamerUtil::VideoProfile();
-    profile->codec = GStreamerUtil::VIDEO_CODEC_H264;
 }
 
 /*
@@ -120,8 +116,19 @@ void VideoStreamer::onMessage(DataPacket packet){
             data.append(CAMERA_STOPPED);
             data.append(CLAW);
         }
+    }else if(packet.message.contains(AUDIO_TOGGLE)){
+        if(packet.message.contains(START_AUDIO)){
+            LOG_I(LOG_TAG,"starting audio");
+            startAudio(packet.sender);
+            data.append(AUDIO_TOGGLE);
+            data.append(AUDIO_STARTED);
+        }else if(packet.message.contains(STOP_AUDIO)){
+            stopAudio();
+        }else{
+            LOG_I(LOG_TAG,"dont know brah" + packet.message);
+        }
     }else if(packet.message.contains(EXIT)){
-        shutdownClientCameras(packet.sender);
+        //do nothing...let the timeout handle it...
     }
     LOG_I(LOG_TAG,"sending message to " + packet.sender.toString() + " at " + QString::number(CONTROL_CLIENT_PORT));
     control->sendUDP(packet.sender,data,CONTROL_CLIENT_PORT);
@@ -152,6 +159,11 @@ void VideoStreamer::shutdownAllCameras(){
     stopCamera(BACK);
     stopCamera(CLAW);
 
+    //not a camera but should stop the audio streams as well
+    //calling it twice ensures that both are shutdown
+    stopAudio();
+    stopAudio();
+
     //shutdown is only called when we disconnect.
     //we only have to do this when we disconnect.
     frontPipeEmpty = true;
@@ -164,10 +176,6 @@ void VideoStreamer::shutdownAllCameras(){
     disconnect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
     connect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
     connect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
-}
-
-void VideoStreamer::shutdownClientCameras(QHostAddress){
-
 }
 
 void VideoStreamer::stopCamera(QString camera){
@@ -242,6 +250,51 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
                 control->sendUDP(client,nope,CONTROL_CLIENT_PORT);
             }
         }
+    }
+}
+
+void VideoStreamer::startAudio(QHostAddress client){
+    if(primaryAudioPipelineEmpty){
+        QString binStr = "autoaudiosrc ! audioconvert ! rtpL24pay ! udpsink host=" + client.toString() + " auto-multicast=true port=" + QString::number(AUDIO_PORT);
+        QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
+        primaryAudioPipeline->add(source);
+        QGlib::connect(primaryAudioPipeline->bus(),"message::error",this,&VideoStreamer::onBusMessage);
+        LOG_I(LOG_TAG,"\n\n");
+        LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
+        primaryAudioPipeline->bus()->addSignalWatch();
+        QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(AUDIO_PORT) + " caps=\"application/x-rtp,channels=(int)2,format=(string)S16LE,media=(string)audio,payload=(int)96,clock-rate=(int)44100,encoding-name=(string)L24\" ! rtpL24depay ! audioconvert ! autoaudiosink";
+        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+        //primaryAudioPipelineEmpty = false;
+        primaryAudioPipeline->setState(QGst::StatePlaying);
+        primaryAudioPipelineEmpty = false;
+    }else if(secondaryAudioPipelineEmpty){
+        QString binStr = "autoaudiosrc ! audioconvert ! rtpL24pay ! udpsink host=" + client.toString() + " auto-multicast=true port=" + QString::number(AUDIO_PORT);
+        QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
+        secondaryAudioPipeline->add(source);
+        QGlib::connect(secondaryAudioPipeline->bus(),"message::error",this,&VideoStreamer::onBusMessage);
+        LOG_I(LOG_TAG,"\n\n");
+        LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
+        secondaryAudioPipeline->bus()->addSignalWatch();
+        QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(AUDIO_PORT) + " caps=\"application/x-rtp,channels=(int)2,format=(string)S16LE,media=(string)audio,payload=(int)96,clock-rate=(int)44100,encoding-name=(string)L24\" ! rtpL24depay ! audioconvert ! autoaudiosink";
+        LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+        //primaryAudioPipelineEmpty = false;
+        secondaryAudioPipeline->setState(QGst::StatePlaying);
+        secondaryAudioPipelineEmpty = false;
+    }else{
+        LOG_I(LOG_TAG,"well shit brah, no more audio pipelines");
+    }
+
+}
+
+void VideoStreamer::stopAudio(){
+    if(!secondaryAudioPipelineEmpty){
+        secondaryAudioPipeline->setState(QGst::StatePaused);
+        secondaryAudioPipeline->setState(QGst::StateNull);
+        secondaryAudioPipelineEmpty = true;
+    }else if(!primaryAudioPipelineEmpty){
+        primaryAudioPipeline->setState(QGst::StatePaused);
+        primaryAudioPipeline->setState(QGst::StateNull);
+        primaryAudioPipelineEmpty = true;
     }
 }
 

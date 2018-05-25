@@ -16,7 +16,6 @@
 #include <socket.h>
 #include <soro_global.h>
 
-#include "gstreamerutil.h"
 #include "logger.h"
 #include "configreader.h"
 
@@ -41,10 +40,13 @@ public slots:
 
 private:
     const QString LOG_TAG = "VideoStreamer";
-    GStreamerUtil::VideoProfile *profile;
     QGst::PipelinePtr frontPipeline;
     QGst::PipelinePtr backPipeline;
     QGst::PipelinePtr clawPipeline;
+    QGst::PipelinePtr backAudioPipeline;
+    QGst::PipelinePtr clawAudioPipeline;
+    QGst::PipelinePtr primaryAudioPipeline;
+    QGst::PipelinePtr secondaryAudioPipeline;
     QString frontDevice = "NOT_FOUND";
     QString backDevice = "NOT_FOUND";
     QString clawDevice = "NOT_FOUND";
@@ -56,12 +58,16 @@ private:
     bool frontPipeEmpty = true;
     bool backPipeEmpty = true;
     bool clawPipeEmpty = true;
+    bool primaryAudioPipelineEmpty = true;
+    bool secondaryAudioPipelineEmpty = true;
     QByteArray nope;
 
     void onBusMessage(const QGst::MessagePtr &message);
     void shutdownClientCameras(QHostAddress);
     void shutdownAllCameras();
     void startCamera(QString camera,QHostAddress clientAddress);
+    void startAudio(QHostAddress client);
+    void stopAudio();
     void stopCamera(QString camera);
 };
 
