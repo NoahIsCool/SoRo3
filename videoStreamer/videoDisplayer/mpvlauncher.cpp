@@ -11,7 +11,7 @@ void MPVLauncher::start()
     ConfigReader reader("/home/soro/videoStreamer/config/missionControl.conf");
     if(!reader.exists()){
         LOG_W(LOG_TAG,"no config file found using defaults\nPlease put a config file at /home/soro/videoStreamer/config/missionControl.conf");
-        rover = new QHostAddress("192.168.1.183");
+        rover = new QHostAddress("10.8.0.38");
 
     }else{
         rover = new QHostAddress(reader.find("roverAddress"));
@@ -125,7 +125,7 @@ void MPVLauncher::onMessage(DataPacket packet){
     }else if(packet.message.contains(CAMERA_TOGGLE)){
         if(packet.message.contains(CAMERA_STARTED)){
             if(packet.message.contains(FRONT)){
-                QString binStr = "udpsrc port=5555 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                QString binStr = "udpsrc port=" + QString::number(FRONT_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 frontPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 /*QString caps = "application/x-raw, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96";
                 QString inBin = "udpsrc port=5555 ! rtph264depay ! decodebin ! videoconvert ! appsink name=\"MultiSink\"";// + caps;
@@ -137,11 +137,11 @@ void MPVLauncher::onMessage(DataPacket packet){
                 displayPipeline->setState(QGst::StatePlaying);*/
                 frontPipeline->setState(QGst::StatePlaying);
             }else if(packet.message.contains(BACK)){
-                QString binStr = "udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                QString binStr = "udpsrc port=" + QString::number(BACK_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 backPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 backPipeline->setState(QGst::StatePlaying);
             }else if(packet.message.contains(CLAW)){
-                QString binStr = "udpsrc port=5556 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                QString binStr = "udpsrc port=" + QString::number(CLAW_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
                 clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                 clawPipeline->setState(QGst::StatePlaying);
             }
