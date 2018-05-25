@@ -20,9 +20,10 @@ ConfigReader::ConfigReader(QString configFile){
         }
         LOG_E(LOG_TAG,"File exists! Oh Boy!");
         doesExist = true;
-        QString line = in.readLine();
+        QString line = "";
+        LOG_I(LOG_TAG,line);
         while(!in.atEnd()) {
-            LOG_I(LOG_TAG,line);
+            line = in.readLine();
 
             QStringList  fields = line.split("=");
 
@@ -30,7 +31,6 @@ ConfigReader::ConfigReader(QString configFile){
             pair.tag = fields[0];
             pair.value = fields[1];
             list.push_back(pair);
-            line = in.readLine();
         }
     }
 }

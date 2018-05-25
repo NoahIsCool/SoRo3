@@ -14,15 +14,10 @@ void MPVLauncher::start()
         rover = new QHostAddress("192.168.1.183");
 
     }else{
-        if(reader.find("isMaster") == "true"){
-            rover = new QHostAddress(reader.find("roverAddress"));
-            isMaster = true;
-        }else{
-            master = new QHostAddress(reader.find("masterAddress"));
-            isMaster = false;
-        }
+        rover = new QHostAddress(reader.find("roverAddress"));
     }
     connected = false;
+    LOG_I(LOG_TAG,"rover address is " + rover->toString());
     control = new socket(CONTROL_CLIENT_PORT,this);
     heartbeat = new socket(HEARTBEAT_CLIENT_PORT,this);
     initMessage = new QByteArray;

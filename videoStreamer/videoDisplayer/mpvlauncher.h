@@ -35,8 +35,6 @@ public slots:
 private:
     const QString LOG_TAG = "Video Displayer";
     QHostAddress *rover;
-    QHostAddress *forwardedTo;
-    //socket *forwardedTo;
     socket *control;
     socket *heartbeat;
     QTimer *heartbeatTimer;
@@ -49,8 +47,6 @@ private:
     QGst::PipelinePtr clawPipeline;
     MultiSink *frontSink;
     bool connected;
-    bool isMaster;
-    QHostAddress *master;
 
     void processInput();
 };
