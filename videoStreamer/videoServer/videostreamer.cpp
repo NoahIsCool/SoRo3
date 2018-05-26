@@ -270,7 +270,7 @@ void VideoStreamer::startCamera(QString camera,QHostAddress client){
 
 void VideoStreamer::startAudio(QHostAddress client){
     if(primaryAudioPipelineEmpty){
-        QString binStr = "autoaudiosrc ! audioconvert ! rtpL24pay ! udpsink host=" + client.toString() + " auto-multicast=true port=" + QString::number(AUDIO_PORT);
+        QString binStr = "autoaudiosrc ! mulawenc ! rtppcmupay ! udpsink host=" + client.toString() + "  port=" + QString::number(AUDIO_PORT);
         QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
         primaryAudioPipeline->add(source);
         QGlib::connect(primaryAudioPipeline->bus(),"message::error",this,&VideoStreamer::onBusMessage);

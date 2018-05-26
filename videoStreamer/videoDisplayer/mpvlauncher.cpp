@@ -152,7 +152,7 @@ void MPVLauncher::onMessage(DataPacket packet){
     }else if(packet.message.startsWith(AUDIO_TOGGLE)){
         if(packet.message.contains(AUDIO_STARTED)){
             LOG_I(LOG_TAG,"starting audio");
-            QString binStr = "udpsrc port=" + QString::number(AUDIO_PORT) + " caps=\"application/x-rtp,channels=(int)2,format=(string)S16LE,media=(string)audio,payload=(int)96,clock-rate=(int)44100,encoding-name=(string)L24\" ! rtpL24depay ! audioconvert ! autoaudiosink";
+            QString binStr = "udpsrc port=" + QString::number(AUDIO_PORT) + " caps=\"application/x-rtp\" ! queue ! rtppcmudepay ! mulawdec ! audioconvert ! alsasink";
             audioPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
             audioPipeline->setState(QGst::StatePlaying);
         }
