@@ -32,6 +32,6 @@ HEADERS += \
     soro_global.h
 
 unix {
-    target.path = /usr/lib
+    target.path = /opt/project-remoteVideo/libs/
     INSTALLS += target
 }

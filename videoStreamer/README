@@ -2,40 +2,31 @@ This is a super simplfied version the the old rover streamig video code. The bes
 of this code is the fact that it can stream up to 3 videos at the same time.
 The down side is that I have no idea how in the fuck to make a gui...soooo it uses gstreamers autosink to show the stream.
 
-That being said...This code is kinda hacky right now...I really just wanted to put
-something out there that works. I will clean it up later but for now it sucks.
-
 Anyways, to use this code, put the videoStreamer on the rover along with the config folder.
 The code will expect the config folder to be under here: /home/soro/videoStreamer
 this is for both the rover and the mission control
 
-Right now, it only supports 1 client. Eventually, I will fix it so 2 clients can connect
-by forwarding streams from the first client to the second. You know, to save on broadband
-between us and the rover.
+This code should support as many client as cameras you have...So have fun.
 
 To build:
-go to the scripts folder and run ./build
-it should handle everything for you but if it doesnt, this is what you need to do
-first make sure qt5 is installed on the up board.
-then cd into the networking folder. We want to build this first.
-run 'qmake Networking.pro -r -spec linux-g++' to generate the make file
-then run 'make' to compile it
-and finally run 'sudo make install' to install it.
+check out the BUILD file
 
-Next, to build the videoStreamer.
-cd into the videoDisplayer folder.
-run 'qmake videoDisplayer.pro -r -spec linux-g++' to generate the makefile for it
-the run 'make'
-and it should be good to go.
-
-If any of this fails, try to make sure that qt5 is installed and qt5gstreamer.
+If any of the build fails, try to make sure that qt5 is installed and qt5gstreamer.
 those are the only other dependencies you need for this project.
 If you are compiling the videoDisplayer, just open it on qt creator. Its soo much easier.
 videoDisplayer also needs the Networking project so open that in qt creator first and build it.
 
 to use the code:
-1)
-lauch both the videoStreamer on the rover and the videoDisplayer on the mission control.
+1) running is a little difficult because I wanted to make coding easier. Sorry.
+Anyways, if you run it in qt creator then it should handle everything. If you are running
+it in the terminal then you either have to run one of my scripts or run this command before
+launching either the videoStreamer or videoDisplayer.
+
+export LD_LIBRARY_PATH=/home/soro/videoStreamer/Networking
+
+This tells the system where the networking library is.
+
+Then, launch the videoStreamer on the rover and the videoDisplayer on the mission control.
 The order doesnt matter
 
 2)

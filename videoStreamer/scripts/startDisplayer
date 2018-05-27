@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export LD_LIBRARY_PATH=/home/soro/videoStreamer/libs
+
+/home/soro/videoStreamer/VideoServer/libs/videoDisplayer

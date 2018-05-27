@@ -11,7 +11,7 @@ void MPVLauncher::start()
     ConfigReader reader("/home/soro/videoStreamer/config/missionControl.conf");
     if(!reader.exists()){
         LOG_W(LOG_TAG,"no config file found using defaults\nPlease put a config file at /home/soro/videoStreamer/config/missionControl.conf");
-        rover = new QHostAddress("192.168.1.183");
+        rover = new QHostAddress("192.168.1.13");
 
     }else{
         rover = new QHostAddress(reader.find("roverAddress"));
