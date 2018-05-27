@@ -37,7 +37,7 @@ void MPVLauncher::start()
 void MPVLauncher::processInput(){
     std::vector<uint8_t> message;
     QString option = "";
-    std::string help = "Commands: \tAvailable Cameras: \nstart \t\tfront \nstop \t\tback \nhelp \t\tclaw \nexit \t\taudio\n";
+    std::string help = "Commands: \tAvailable Cameras: \nstart \t\tfront \nstop \t\tback \nhelp \t\tclaw \nexit \t\ttop \n\t\taudio\n";
     std::cout << help << std::endl;
     while(true){
         std::string raw;
@@ -58,6 +58,10 @@ void MPVLauncher::processInput(){
                 message.push_back(CAMERA_TOGGLE);
                 message.push_back(START_CAMERA);
                 message.push_back(CLAW);
+            }else if(option.contains("top")){
+                message.push_back(CAMERA_TOGGLE);
+                message.push_back(START_CAMERA);
+                message.push_back(TOP);
             }else if(option.contains("audio")){
                 message.push_back(AUDIO_TOGGLE);
                 message.push_back(START_AUDIO);
@@ -81,6 +85,12 @@ void MPVLauncher::processInput(){
                 message.push_back(CLAW);
                 clawPipeline->setState(QGst::StatePaused);
                 clawPipeline->setState(QGst::StateNull);
+            }else if(option.contains("top")){
+                message.push_back(CAMERA_TOGGLE);
+                message.push_back(STOP_CAMERA);
+                message.push_back(TOP);
+                topPipeline->setState(QGst::StatePaused);
+                topPipeline->setState(QGst::StateNull);
             }else if(option.contains("audio")){
                 message.push_back(AUDIO_TOGGLE);
                 message.push_back(START_AUDIO);
@@ -154,6 +164,13 @@ void MPVLauncher::onMessage(DataPacket packet){
                         QString binStr = "udpsrc port=" + QString::number(CLAW_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, framerate=20/1, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin threads=8 ! autovideosink";
                         clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
                         clawPipeline->setState(QGst::StatePlaying);
+                    }
+                    break;
+                    case TOP:{
+                        //QString binStr = "udpsrc port=" + QString::number(TOP_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                        QString binStr = "udpsrc port=" + QString::number(TOP_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, framerate=20/1, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin threads=8 ! autovideosink";
+                        topPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                        topPipeline->setState(QGst::StatePlaying);
                     }
                     break;
                 };

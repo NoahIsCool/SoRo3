@@ -20,6 +20,7 @@ VideoStreamer::VideoStreamer(QString configFile){
      * frontCamera=video0
      * backCamera=video1
      * clawCamera=video2
+     * topCamera=video3
      * and it will be parsed and return the device needed.
      */
     ConfigReader reader(configFile);
@@ -27,6 +28,7 @@ VideoStreamer::VideoStreamer(QString configFile){
         frontDevice = reader.find("frontCamera");
         backDevice = reader.find("backCamera");
         clawDevice = reader.find("clawCamera");
+        topDevice = reader.find("topCamera");
 
         if(frontDevice == "NOT_FOUND"){
             LOG_I(LOG_TAG,"cannot find front camera device. Unpredicted results will occure if you use this camera");
@@ -61,11 +63,22 @@ VideoStreamer::VideoStreamer(QString configFile){
             }
         }
 
+        if(topDevice == "NOT_FOUND"){
+            LOG_I(LOG_TAG,"cannot find top camera device. Unpredicted results will occure if you use this camera");
+        }else{
+            int ret = system(QString("ls /dev/" + topDevice).toStdString().c_str());
+            if(ret == 0){
+                LOG_I(LOG_TAG,"Good news, everybody! I found the top camera!");
+            }else{
+                LOG_I(LOG_TAG,"Sweet File-not-found of Puget Sound! Cant find the top device. You should probably check to see if it is plugged in.");
+            }
+        }
+
     }else{
         QFile test("/dev/video0");
         if(test.exists()){
             frontDevice = "video0";
-            backDevice = "video0";
+            topDevice = "video0";
         }
         LOG_W(LOG_TAG,"missig config file! Please put one at /home/soro/videoStreamer/conf/videoStreamer.conf");
     }
@@ -73,6 +86,7 @@ VideoStreamer::VideoStreamer(QString configFile){
     frontPipeline = QGst::Pipeline::create();
     backPipeline = QGst::Pipeline::create();
     clawPipeline = QGst::Pipeline::create();
+    topPipeline = QGst::Pipeline::create();
     primaryAudioPipeline = QGst::Pipeline::create();
     secondaryAudioPipeline = QGst::Pipeline::create();
 
@@ -152,6 +166,17 @@ void VideoStreamer::onMessage(DataPacket packet){
                                 control->sendUDP(packet.sender,nope,CONTROL_CLIENT_PORT);
                             }
                         break;
+                        case TOP:
+                            if(topPipeEmpty){
+                                LOG_I(LOG_TAG,"starting top");
+                                startCamera(TOP,packet.sender);
+                                data.push_back(CAMERA_TOGGLE);
+                                data.push_back(CAMERA_STARTED);
+                                data.push_back(TOP);
+                            }else{
+                                control->sendUDP(packet.sender,nope,CONTROL_CLIENT_PORT);
+                            }
+                        break;
                     };
                 break;
                 case STOP_CAMERA:
@@ -173,6 +198,12 @@ void VideoStreamer::onMessage(DataPacket packet){
                             data.push_back(CAMERA_TOGGLE);
                             data.push_back(CAMERA_STOPPED);
                             data.push_back(CLAW);
+                        break;
+                        case TOP:
+                            stopCamera(TOP);
+                            data.push_back(CAMERA_TOGGLE);
+                            data.push_back(CAMERA_STOPPED);
+                            data.push_back(TOP);
                         break;
                     };
                 break;
@@ -253,9 +284,11 @@ void VideoStreamer::shutdownAllCameras(){
     frontPipeEmpty = true;
     backPipeEmpty = true;
     clawPipeEmpty = true;
+    topPipeEmpty = true;
     frontPipeline = QGst::Pipeline::create();
     backPipeline = QGst::Pipeline::create();
     clawPipeline = QGst::Pipeline::create();
+    topPipeline = QGst::Pipeline::create();
     disconnect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
     disconnect(control,SIGNAL(hasData(DataPacket)),this,SLOT(onMessage(DataPacket)));
     connect(heartbeatTimeout,SIGNAL(timeout()),this,SLOT(onTimeout()));
@@ -275,6 +308,10 @@ void VideoStreamer::stopCamera(soro::CAMERA_TYPE camera){
         clawPipeline->setState(QGst::StatePaused);
         clawPipeline->setState(QGst::StateNull);
         clawPipeEmpty = true;
+    }else if(camera == TOP){
+        topPipeline->setState(QGst::StatePaused);
+        topPipeline->setState(QGst::StateNull);
+        topPipeEmpty = true;
     }
 }
 
@@ -349,6 +386,28 @@ void VideoStreamer::startCamera(soro::CAMERA_TYPE camera,QHostAddress client){
                     LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
                     clawPipeEmpty = false;
                     clawPipeline->setState(QGst::StatePlaying);
+                }else{
+                    control->sendUDP(client,nope,CONTROL_CLIENT_PORT);
+                }
+            }
+        break;
+        case TOP:
+            if(topDevice != "NOT_FOUND"){
+                if(topPipeEmpty){
+                    LOG_I(LOG_TAG,"found Top Device!");
+                    //QString binStr = "v4l2src device=/dev/" + topDevice + " ! video/x-raw,framerate=20/1 ! videoscale ! videoconvert ! x264enc threads=4 tune=zerolatency bitrate=5000 speed-preset=superfast ! rtph264pay ! udpsink host=" + clientAddress + " port=" + QString::number(CLAW_CAMERA_PORT);
+                    QString binStr = "v4l2src device=/dev/" + topDevice + " ! videoscale method=0 ! videorate drop-only=true ! videoconvert ! video/x-raw,format=I420,width=1920,height=1080,framerate=30/1 ! x264enc speed-preset=ultrafast tune=zerolatency bitrate=2048 ! rtph264pay config-interval=3 pt=96 ! udpsink host=" + clientAddress + " port=" + QString::number(TOP_CAMERA_PORT);
+                    //clawPipeline = QGst::Parse::launch(binStr).dynamicCast<QGst::Pipeline>();
+                    QGst::BinPtr source = QGst::Bin::fromDescription(binStr);
+                    topPipeline->add(source);
+                    QGlib::connect(topPipeline->bus(), "message::error", this, &VideoStreamer::onBusMessage);
+                    LOG_I(LOG_TAG,"\n\n");
+                    LOG_I(LOG_TAG, "Created gstreamer bin " + binStr + "\n\n");
+                    topPipeline->bus()->addSignalWatch();
+                    QString bin2Str = "gst-launch-1.0 -v udpsrc port=" + QString::number(TOP_CAMERA_PORT) + " caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96\" ! rtph264depay ! decodebin ! videoconvert ! autovideosink";
+                    LOG_I(LOG_TAG,"Gstream code to use: " + bin2Str + "\n\n");
+                    topPipeEmpty = false;
+                    topPipeline->setState(QGst::StatePlaying);
                 }else{
                     control->sendUDP(client,nope,CONTROL_CLIENT_PORT);
                 }

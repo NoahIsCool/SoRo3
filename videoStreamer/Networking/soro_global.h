@@ -6,6 +6,7 @@ namespace soro{
 const int FRONT_CAMERA_PORT     = 5555;
 const int BACK_CAMERA_PORT      = 5556;
 const int CLAW_CAMERA_PORT      = 5557;
+const int TOP_CAMERA_PORT       = 5558;
 const int CONTROL_PORT          = 6969;
 const int HEARTBEAT_PORT        = 6970;
 const int AUDIO_PORT            = 5558;
@@ -72,6 +73,7 @@ enum CAMERA_TYPE : uint8_t {
     FRONT = 0,
     BACK,
     CLAW,
+    TOP,
 };
 
 /*const QString START_CAMERA    = "START_CAMERA";

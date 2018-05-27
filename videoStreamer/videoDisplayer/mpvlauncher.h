@@ -43,9 +43,9 @@ private:
     std::vector<uint8_t> initMessage;
     std::thread *inputThread;
     QGst::PipelinePtr frontPipeline;
-    QGst::PipelinePtr displayPipeline;
     QGst::PipelinePtr backPipeline;
     QGst::PipelinePtr clawPipeline;
+    QGst::PipelinePtr topPipeline;
     QGst::PipelinePtr audioPipeline;
     MultiSink *frontSink;
     bool connected;

@@ -44,13 +44,13 @@ private:
     QGst::PipelinePtr frontPipeline;
     QGst::PipelinePtr backPipeline;
     QGst::PipelinePtr clawPipeline;
-    QGst::PipelinePtr backAudioPipeline;
-    QGst::PipelinePtr clawAudioPipeline;
+    QGst::PipelinePtr topPipeline;
     QGst::PipelinePtr primaryAudioPipeline;
     QGst::PipelinePtr secondaryAudioPipeline;
     QString frontDevice = "NOT_FOUND";
     QString backDevice = "NOT_FOUND";
     QString clawDevice = "NOT_FOUND";
+    QString topDevice = "NOT_FOUND";
     socket *heartbeat;
     QHostAddress heartbeatAddress;
     socket *control;
@@ -59,6 +59,7 @@ private:
     bool frontPipeEmpty = true;
     bool backPipeEmpty = true;
     bool clawPipeEmpty = true;
+    bool topPipeEmpty = true;
     bool primaryAudioPipelineEmpty = true;
     bool secondaryAudioPipelineEmpty = true;
     std::vector<uint8_t> nope;
