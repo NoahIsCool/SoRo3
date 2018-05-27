@@ -9,7 +9,7 @@
 struct DataPacket{
     QHostAddress sender;
     int port;
-    QString message;
+    std::vector<uint8_t> message;
 };
 
 class socket : public QObject
@@ -18,7 +18,7 @@ class socket : public QObject
 public:
     explicit socket(QHostAddress addressToSendTo,int p,QObject *parent = nullptr);
     socket(int p,QObject *parent = nullptr);
-    void sendUDP(QHostAddress to,QByteArray message,int port);
+    void sendUDP(QHostAddress to,std::vector<uint8_t> message,int port);
 
 signals:
     void hasData(DataPacket);
@@ -31,6 +31,7 @@ private:
     QHostAddress addressToSendTo;
     int port;
     DataPacket dataPacket;
+    const qint64 MAX_SIZE = 256;
 };
 
 #endif // SOCKET_H

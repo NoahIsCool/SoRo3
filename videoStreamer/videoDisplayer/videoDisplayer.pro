@@ -35,4 +35,4 @@ INCLUDEPATH += ../Networking/
 
 PKGCONFIG += QtGStreamer-1.0 QtGLib-2.0 QtGstreamerUtils-1.0 QtGStreamerUi-1.0
 
-LIBS += -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0 -lQt5GStreamerUi-1.0 -lNetworking
+LIBS += -lQt5GStreamer-1.0 -lQt5GLib-2.0 -lQt5GStreamerUtils-1.0 -lQt5GStreamerUi-1.0 -L../build-Networking-Desktop_Qt_5_9_1_GCC_64bit-Debug/ -lNetworking

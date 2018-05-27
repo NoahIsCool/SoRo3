@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <socket.h>
 #include <soro_global.h>
+#include <vector>
 
 #include "logger.h"
 #include "configreader.h"
@@ -60,16 +61,16 @@ private:
     bool clawPipeEmpty = true;
     bool primaryAudioPipelineEmpty = true;
     bool secondaryAudioPipelineEmpty = true;
-    QByteArray nope;
+    std::vector<uint8_t> nope;
     QString caps = "";
 
     void onBusMessage(const QGst::MessagePtr &message);
     void shutdownClientCameras(QHostAddress);
     void shutdownAllCameras();
-    void startCamera(QString camera,QHostAddress clientAddress);
+    void startCamera(soro::CAMERA_TYPE camera,QHostAddress clientAddress);
     void startAudio(QHostAddress client);
     void stopAudio();
-    void stopCamera(QString camera);
+    void stopCamera(soro::CAMERA_TYPE camera);
 };
 
 #endif // VIDEOSTREAMER_H

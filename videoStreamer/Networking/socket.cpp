@@ -30,27 +30,22 @@ socket::socket(int p,QObject *parent){
     connect(socketIn, SIGNAL(readyRead()), this, SLOT(readUDP()));
 }
 
-void socket::sendUDP(QHostAddress to,QByteArray Data,int p)
+void socket::sendUDP(QHostAddress to,std::vector<uint8_t> data,int p)
 {
-    //QByteArray Data;
-    //Data.append(message);
+    char *out = new char[data.size()];
+    for(int i = 0; i < data.size(); i++){
+        out[i] = data[i];
+    }
 
-    // Sends the datagram datagram
-    // to the host address and at port.
-    // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
-    //                      const QHostAddress & host, quint16 port)
-    socketOut->writeDatagram(Data, to, p);
-    //FIXME: change code to use this instead
-    //socketOut->writeDatagram(data,len(data),to,p);
-    //socketOut->writeDatagram(Data, QHostAddress::LocalHost, 1234);
+    socketOut->writeDatagram(out,data.size(),to,p);
 
 }
 
 void socket::readUDP()
 {
     // when data comes in
-    QByteArray buffer;
-    buffer.resize(socketIn->pendingDatagramSize());
+    int size = socketIn->pendingDatagramSize();
+    char *buffer = new char[size];
 
     QHostAddress sender;
     quint16 senderPort;
@@ -61,13 +56,18 @@ void socket::readUDP()
     // The sender's host address and port is stored in *address and *port
     // (unless the pointers are 0).
 
-    socketIn->readDatagram(buffer.data(), buffer.size(),
-                         &sender, &senderPort);
+    socketIn->readDatagram(buffer,MAX_SIZE,&sender,&senderPort);
     addressToSendTo = sender;
+
+    std::vector<uint8_t> data;
+    data.resize(size);
+    for(int i = 0; i < data.size(); i++){
+        data[i] = (unsigned int)buffer[i];
+    }
 
     dataPacket.sender = sender;
     dataPacket.port = senderPort;
-    dataPacket.message = buffer;
+    dataPacket.message = data;
 
     emit hasData(dataPacket);
 }

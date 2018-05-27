@@ -7,9 +7,10 @@
 #include <iostream>
 #include <Qt5GStreamer/QGst/Pipeline>
 #include <Qt5GStreamer/QGst/Parse>
+#include <socket.h>
+#include <soro_global.h>
+#include <vector>
 
-#include "socket.h"
-#include "soro_global.h"
 #include "configreader.h"
 #include "logger.h"
 #include "player.h"
@@ -39,7 +40,7 @@ private:
     socket *heartbeat;
     QTimer *heartbeatTimer;
     QTimer *connectTimer;
-    QByteArray *initMessage;
+    std::vector<uint8_t> initMessage;
     std::thread *inputThread;
     QGst::PipelinePtr frontPipeline;
     QGst::PipelinePtr displayPipeline;
