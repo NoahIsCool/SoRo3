@@ -4,6 +4,16 @@
 
 socket::socket(QObject *parent) : QObject(parent)
 {
+    char tmp[10];
+    // start the file
+    for(int i = 0; i < 40; i++){
+        sprintf(tmp, "dataFile%d.csv",i);
+        if(!fopen(tmp,"r")){
+            //create a new file
+            dataFile = fopen(tmp,"w");
+            break;
+        }
+    }
     // timer to handle udp signal loss
     signalTimer = new QTimer();
     signalTimer->start(2000);
@@ -202,6 +212,7 @@ void socket::readSerial()
     const QByteArray buffer = port->readAll();
 
     printf(buffer);
+    fprintf(dataFile,buffer);
 
     if(buffer.at(0) == -126) // incorrect id
     {

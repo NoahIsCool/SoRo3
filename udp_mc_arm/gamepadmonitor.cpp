@@ -124,6 +124,7 @@ void GamepadMonitor::onRXAxis(double value){
         clawL = 75.0;
         clawR = 150.0;
      }
+     sendUDP();
  }
 
 void GamepadMonitor::onL2(double value){
@@ -232,13 +233,23 @@ void GamepadMonitor::sendUDP(){
     }
     // this is just because the collision stuff doesnt work as well at such sharp corners
     if( temp_v > 0 )
+/*    //do the calculations here and pray that they're correct
+    float temp_u = coord_u-(left_y_axis*5)*(abs(left_y_axis) > .05);
+    float temp_v = coord_v-(right_y_axis*5)*(abs(right_y_axis) > .05);
+    float hypot2 = pow(temp_u, 2) + pow(temp_v, 2);
+    float x_len = sqrt(160.6811-77.8123*cos( acos( (31.3201-hypot2)/(-36.0*sqrt(hypot2)) ) + atan(temp_v/temp_u)+.40602 ));
+    float y_len = sqrt(134.8337-(85.8577*cos(2.91186-acos((hypot2-481.3801)/(-481.3)))));
+    shoulder_length = uint8_t(round((x_len-246.126)*(95/99.822))+40);
+    elbow_length = uint8_t(round((y_len-246.126)*(95/99.822))+40);
+
+    //if the stuff is possible update the values
+    if(true)//x_len > 246.126 && x_len < 345.948 && y_len > 246.126 && y_len < 345.948)*/
     {
         if( temp_v > 27.5 )
             temp_v = 27.5;
         if( temp_u < 14.25 )
             temp_u = 14.25;
     }
-
 
     // calculate the length of each actuator based on the coordinate (u,v)
     float hypot2 = pow(temp_u, 2) + pow(temp_v, 2);
@@ -260,7 +271,6 @@ void GamepadMonitor::sendUDP(){
     coord_y = temp_v;
     coord_z = temp_u*cos(temp_theta);
     emit clawPosUpdated(coord_u, coord_v);
-
 
     wrist_angle = 127 * theta;
     if (wrist_angle < 10 && wrist_angle > -10) {
@@ -284,6 +294,10 @@ void GamepadMonitor::sendUDP(){
     out.append(clawR);
     out.append(uint8_t((shoulder_length+elbow_length+wrist_angle+wrist_rotation+clawL+clawR)/6));
     mySocket.sendUDP(out);
+
+    qDebug() << "x:" << coord_u << "\ty:" << coord_v << "\tx len: " << x_len<< "\ty len"<< y_len << "\t1:" << shoulder_length << "\t2:" << elbow_length << "\tCl:" << clawL <<"\twrist angle: "<< wrist_angle
+             <<"\twrist rotation: "<< wrist_rotation << "\thash: "<< uint8_t((coord_u+coord_v+wrist_angle+wrist_rotation+clawL+clawR)/6) << endl;
+
 
     qDebug() << "x:" << coord_x << "\ty:" << coord_y << "\tz:" << coord_z
              << "\tx len: " << x_len<< "\ty len:"<< y_len << "\tbase ang: " << coord_theta
