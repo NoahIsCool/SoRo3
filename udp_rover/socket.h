@@ -25,6 +25,7 @@ class socket : public QObject
 {
     Q_OBJECT
 public:
+    FILE *dataFile;
     explicit socket(QObject *parent = nullptr);
     void sendUDP(QByteArray data);
     void sendUDP(const char* message);
