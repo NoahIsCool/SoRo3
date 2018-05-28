@@ -3,11 +3,11 @@
 // pin mapping
 /*
      [],pin  front   [],pin
-     0,2     0-|-0   3,5
+     0,4     0-|-0   3,5
                |
      1,3     0-|-0   4,6
                |
-     2,4     0-|-0   5,7
+     2,7     0-|-0   5,2
 
      gimbal pan: 8
      gimbal tilt: 9
@@ -35,12 +35,12 @@ bool inTransmission = false;
 
 //setup wheels
 void setup() {
-  wheel[0].attach(2);
+  wheel[0].attach(4);
   wheel[1].attach(3);
-  wheel[2].attach(4);
+  wheel[2].attach(7);
   wheel[3].attach(5);
   wheel[4].attach(6);
-  wheel[5].attach(7);
+  wheel[5].attach(2);
   
   gimbal_pan.attach(8);
   gimbal_tilt.attach(9);
@@ -127,15 +127,15 @@ void updateServos(){
       wheel[0].write(90 + leftWheels);
       wheel[1].write(90 + leftWheels);
       wheel[2].write(90 + leftWheels);
-      wheel[3].write(90 + rightWheels);
-      wheel[4].write(90 + rightWheels);
+      wheel[3].write(90 - rightWheels);
+      wheel[4].write(90 - rightWheels);
       wheel[5].write(90 + rightWheels);
    } else {
       wheel[0].write(90 + (leftWheels * 18/24));
       wheel[1].write(90 + (leftWheels * 18/24));
       wheel[2].write(90 + (leftWheels * 18/24));
-      wheel[3].write(90 + (rightWheels * 18/24));
-      wheel[4].write(90 + (rightWheels * 18/24));
+      wheel[3].write(90 - (rightWheels * 18/24));
+      wheel[4].write(90 - (rightWheels * 18/24));
       wheel[5].write(90 + (rightWheels * 18/24));  
    }
    gimbal_pan.write(90 + pan);

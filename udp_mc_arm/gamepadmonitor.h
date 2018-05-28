@@ -25,13 +25,13 @@ private:
 
     void printVals();
 
-    uint8_t base_rotation = 0; //all these numbers are between 0 and 180
-    uint8_t shoulder_length = 0;
-    uint8_t elbow_length = 0;
-    float wrist_rotation = 0;// in degrees
-    float wrist_angle = 0;
-    uint8_t clawL = 120;
-    uint8_t clawR = 70;
+    uint8_t base_rotation; // all these numbers are between 0 and 180
+    uint8_t shoulder_length;
+    uint8_t elbow_length;
+    float wrist_rotation; // in degrees
+    float wrist_angle;
+    uint8_t clawL;
+    uint8_t clawR;
 
     float phi;// for the wrist
     float theta;// for the wrist
@@ -39,10 +39,16 @@ private:
     float left_y_axis;
     float right_x_axis;
     float right_y_axis;
-    float coord_u = 600; //we will have to see what these are
-    float coord_v = 0;
+
+    float coord_x;
+    float coord_y;
+    float coord_z;
+    float coord_u;
+    float coord_v;
+    float coord_theta;
 
 public slots:
+    void onXAxis(double value);
     void onYAxis(double value);
     void onRYAxis(double value);
     void onRXAxis(double value);
@@ -53,6 +59,9 @@ public slots:
     void onButtonDown(bool pressed);
     void sendUDP();
     void message(QByteArray arr);
+
+signals:
+    void clawPosUpdated(float x, float y);
 };
 
 #endif // GAMEPADMONITOR_H

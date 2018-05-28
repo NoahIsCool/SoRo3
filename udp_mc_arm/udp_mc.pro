@@ -1,4 +1,5 @@
-QT -= gui
+QT += gui
+QT += widgets
 QT += core
 QT += network
 QT += gamepad
@@ -19,8 +20,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp \
     socket.cpp \
-    gamepadmonitor.cpp
+    gamepadmonitor.cpp \
+    arm_view.cpp
 
 HEADERS += \
     socket.h \
-    gamepadmonitor.h
+    gamepadmonitor.h \
+    arm_view.h
+
+FORMS += \
+    arm_view.ui

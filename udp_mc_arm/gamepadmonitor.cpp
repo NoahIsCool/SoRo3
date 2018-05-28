@@ -9,8 +9,6 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
     : QObject(parent)
     , m_gamepad(0)
 {
-    this->phi = 0.0;
-    this->wrist_rotation = 0.0;
     auto gamepads = QGamepadManager::instance()->connectedGamepads();
     if (gamepads.isEmpty()) {
         return;
@@ -20,6 +18,7 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
     /*connect(m_gamepad, &QGamepad::axisLeftXChanged, this, [](double value){
         qDebug() << "Left X" << value;
     });*/
+    connect(m_gamepad, SIGNAL(axisLeftXChanged(double)), this, SLOT(onXAxis(double)));
     connect(m_gamepad, SIGNAL(axisLeftYChanged(double)), this, SLOT(onYAxis(double)));
     connect(m_gamepad, SIGNAL(axisRightYChanged(double)), this, SLOT(onRYAxis(double)));
     connect(m_gamepad, SIGNAL(axisRightXChanged(double)), this, SLOT(onRXAxis(double)));
@@ -61,8 +60,31 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
         qDebug() << "Button Guide" << pressed;
     });*/
 
-    clawL = 75;
-    clawR = 150;
+    // initialize stuff
+    // values dependent of previous inputs over time:
+    clawL = 75;     // claw servo angle
+    clawR = 150;    // claw servo angle
+    coord_u = 18.5; // wrist position
+    coord_v = 9.5;  // wrist position
+    coord_theta = 0.0;
+    coord_x = 18.5;
+    coord_y = 9.5;
+    coord_z = 0.0;
+    phi = 0.0;      // wrist angle
+    theta = 0.0;    // wrist angle
+    // physical values of arm:
+    base_rotation = 0;    // between 0 and 180
+    shoulder_length = 0;  // between 0 and 180
+    elbow_length = 0;     // between 0 and 180
+    wrist_rotation = 0.0; // in degrees
+    wrist_angle = 0.0;    // in degrees
+    // direct controller values:
+    left_x_axis = 0.0;
+    left_y_axis = 0.0;
+    right_x_axis = 0.0;
+    right_y_axis = 0.0;
+
+    // timer for sending data (currently at 10 Hz)
     udpTimer = new QTimer();
     connect(udpTimer, SIGNAL(timeout()), this, SLOT(sendUDP()));
     udpTimer->start(100);
@@ -70,6 +92,11 @@ GamepadMonitor::GamepadMonitor( QObject *parent)
 
 void GamepadMonitor::message(QByteArray arr){
     printf(arr);
+}
+
+void GamepadMonitor::onXAxis(double value){
+    left_x_axis = value;
+
 }
 
 void GamepadMonitor::onYAxis(double value){
@@ -142,11 +169,71 @@ void GamepadMonitor::onButtonDown(bool pressed){
 }
 
 void GamepadMonitor::sendUDP(){
-    //these units are in mm
-    //max actuator length: 345.948mm = 145
-    //min actuator length: 246.126mm = 35
+    // control the coordinate based on controller input
+    // the number 0.2 below means its top speed is 0.2 inches/second
+    float temp_x = coord_x;
+    float temp_y = coord_y;
+    float temp_z = coord_z;
+    if(abs(left_y_axis) > .1 )
+        temp_x -= left_y_axis*0.2;
+    if(abs(right_y_axis) > .1 )
+        temp_y -= right_y_axis*0.2;
+    if(abs(left_x_axis) > .1 )
+        temp_z -= left_x_axis*0.2;
 
-    //do the calculations here and pray that they're correct
+    /*
+    // This really isn't better unless we can also figure out collision with a torus without converting to cylindrical coordinates
+    // cartesian 3d bounds:
+    // x^2 + y^2 + z^2 <= 956.4557
+    if( pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2) > 956.4557 )
+    {
+        temp_x += temp_x*((30.93/sqrt(pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2)))-1);
+        temp_y += temp_y*((30.93/sqrt(pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2)))-1);
+        temp_z += temp_z*((30.93/sqrt(pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2)))-1);
+    }
+    // x^2 + y^2 + z^2 >= 427.3300
+    if( pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2) < 427.330 )
+    {
+        temp_x += temp_x*((20.67/sqrt(pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2)))-1);
+        temp_y += temp_y*((20.67/sqrt(pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2)))-1);
+        temp_z += temp_z*((20.67/sqrt(pow(temp_x, 2) + pow(temp_y, 2) + pow(temp_z, 2)))-1);
+    }
+    */
+
+    // convert cartesian to cylindrical
+    float temp_u = hypot(temp_x, temp_z);
+    float temp_v = temp_y;
+    float temp_theta = atan2(temp_x, temp_z);
+
+
+    //make sure it stays in cylindrical bounds:
+    // x^2 + y^2 <= 956.4557
+    if( hypot(temp_u, temp_v) > 30.93 )
+    {
+        temp_u += temp_u*((30.93/hypot(temp_u, temp_v))-1);
+        temp_v += temp_v*((30.93/hypot(temp_u, temp_v))-1);
+    }
+    // x^2 + y^2 >= 427.3300
+    if( hypot(temp_u, temp_v) < 20.67 )
+    {
+        temp_u += temp_u*((20.67/hypot(temp_u, temp_v))-1);
+        temp_v += temp_v*((20.67/hypot(temp_u, temp_v))-1);
+    }
+    // (x-14.8678)^2 + (y-1.9870)^2 <= 324.3601 ***only for the bottom part of the circle***
+    if( hypot(temp_u-14.8678, temp_v-1.9870) > 18.01 && temp_v < 0 )
+    {
+        temp_u += (temp_u-14.8678)*((18.01/hypot((temp_u-14.8678), (temp_v-1.9870)))-1);
+        temp_v += (temp_v-1.9870)*((18.01/hypot((temp_u-14.8678), (temp_v-1.9870)))-1);
+    }
+    // (x-1.2187)^2 + (y-14.9504)^2 >= 324.3601
+    if( hypot(temp_u-1.2187, temp_v-14.9504) < 18.01 )
+    {
+        temp_u += (temp_u-1.2187)*((18.01/hypot((temp_u-1.2187), (temp_v-14.9504)))-1);
+        temp_v += (temp_v-14.9504)*((18.01/hypot((temp_u-1.2187), (temp_v-14.9504)))-1);
+    }
+    // this is just because the collision stuff doesnt work as well at such sharp corners
+    if( temp_v > 0 )
+/*    //do the calculations here and pray that they're correct
     float temp_u = coord_u-(left_y_axis*5)*(abs(left_y_axis) > .05);
     float temp_v = coord_v-(right_y_axis*5)*(abs(right_y_axis) > .05);
     float hypot2 = pow(temp_u, 2) + pow(temp_v, 2);
@@ -156,13 +243,34 @@ void GamepadMonitor::sendUDP(){
     elbow_length = uint8_t(round((y_len-246.126)*(95/99.822))+40);
 
     //if the stuff is possible update the values
-    if(true)//x_len > 246.126 && x_len < 345.948 && y_len > 246.126 && y_len < 345.948)
+    if(true)//x_len > 246.126 && x_len < 345.948 && y_len > 246.126 && y_len < 345.948)*/
     {
-        if(abs(left_y_axis) > .05)
-            coord_u = temp_u;
-        if(abs(right_y_axis) > .05)
-            coord_v = temp_v;
+        if( temp_v > 27.5 )
+            temp_v = 27.5;
+        if( temp_u < 14.25 )
+            temp_u = 14.25;
     }
+
+    // calculate the length of each actuator based on the coordinate (u,v)
+    float hypot2 = pow(temp_u, 2) + pow(temp_v, 2);
+    float x_len = sqrt(160.6811-77.8123*cos(acos((99.3601-hypot2)/(-30.0*sqrt(hypot2)))+atan(temp_v/temp_u)+.40602));
+    float y_len = sqrt(180.5948-(100.9791*cos(2.96241-acos((hypot2-549.3601)/(-540.3)))));
+
+    // convert inches to degrees for the servos
+    // max: 13.62 in = 135 deg
+    // min: 9.69 in = 40 deg
+    shoulder_length = uint8_t(round((x_len-9.69)*(95/3.93))+40);
+    elbow_length = uint8_t(round((y_len-9.69)*(95/3.93))+40);
+
+    // update wrist position
+    coord_u = temp_u;
+    coord_v = temp_v;
+    coord_theta = temp_theta;
+    // convert cylindrical back into cartesian, then save these values
+    coord_x = temp_u*sin(temp_theta);
+    coord_y = temp_v;
+    coord_z = temp_u*cos(temp_theta);
+    emit clawPosUpdated(coord_u, coord_v);
 
     wrist_angle = 127 * theta;
     if (wrist_angle < 10 && wrist_angle > -10) {
@@ -173,6 +281,8 @@ void GamepadMonitor::sendUDP(){
         wrist_rotation = 0;
     }
 
+    // send the data
+    //TODO: ********send over coord_theta******
     QByteArray out;
     out.append(char(-127));
     out.append(char(1));
@@ -183,12 +293,17 @@ void GamepadMonitor::sendUDP(){
     out.append(clawL);
     out.append(clawR);
     out.append(uint8_t((shoulder_length+elbow_length+wrist_angle+wrist_rotation+clawL+clawR)/6));
-
     mySocket.sendUDP(out);
+
     qDebug() << "x:" << coord_u << "\ty:" << coord_v << "\tx len: " << x_len<< "\ty len"<< y_len << "\t1:" << shoulder_length << "\t2:" << elbow_length << "\tCl:" << clawL <<"\twrist angle: "<< wrist_angle
              <<"\twrist rotation: "<< wrist_rotation << "\thash: "<< uint8_t((coord_u+coord_v+wrist_angle+wrist_rotation+clawL+clawR)/6) << endl;
 
 
+    qDebug() << "x:" << coord_x << "\ty:" << coord_y << "\tz:" << coord_z
+             << "\tx len: " << x_len<< "\ty len:"<< y_len << "\tbase ang: " << coord_theta
+             << "\t1:" << shoulder_length << "\t2:" << elbow_length << endl;
+             //<< "\tCl:" << clawL <<"\twrist angle: "<< wrist_angle << "\twrist rotation: "<< wrist_rotation
+             //<< "\thash: " << uint8_t((coord_u+coord_v+wrist_angle+wrist_rotation+clawL+clawR)/6) << endl;
 }
 
 void GamepadMonitor::printVals(){
