@@ -3,6 +3,7 @@ import numpy as np
 import serial
 import thread
 import math
+from subprocess import call
 
 """
 This code provides the rover with tennis ball tracking capabilities.
@@ -35,8 +36,11 @@ class BallTracker:
         self.distance = 0.0
         self.hasControl = False
 
+	#camera
+	#self.camera = 0
+
         #HSV stuff
-        trackbar_data = [28, 40, 83, 255, 72, 255, 0, 8, 9, 10]
+        trackbar_data = [255, 40, 83, 255, 72, 255, 0, 8, 9, 10]
         self.h_lo = trackbar_data[0]
         self.h_hi = trackbar_data[1]
         self.s_lo = trackbar_data[2]
@@ -126,11 +130,11 @@ class BallTracker:
         #thread.start_new_thread(self.message, ())
 
         # capture video from camera
-        camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(0)
 
         while True:
             # Get an image from the camera
-            ret, frame = camera.read()
+            ret, frame = self.camera.read()
 
             # Convert frame from BGR to HSV, store it in frame2
             frame2 = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -164,8 +168,8 @@ class BallTracker:
                 center_y = y + (h / 2)
                 x_pos = "X: {}".format(center_x)
                 y_pos = "Y: {}".format(center_y)
-                cv2.putText(frame, x_pos, (0, 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 1), 1, cv2.LINE_AA)
-                cv2.putText(frame, y_pos, (0, 40), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 1), 1, cv2.LINE_AA)
+                cv2.putText(frame, x_pos, (0, 20), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 1), 1, cv2.CV_AA)
+                cv2.putText(frame, y_pos, (0, 40), cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 1), 1, cv2.CV_AA)
                 cv2.circle(frame, (int(center_x), int(center_y)), 3, (0, 110, 255), -1)
                 self.pos_x = center_x
                 self.pos_y = center_y
@@ -184,14 +188,14 @@ class BallTracker:
                 self.thread_two_end = False
 
                 # Release the camera and close all windows.
-                camera.release()
+                self.camera.release()
                 cv2.destroyAllWindows()
 
     @staticmethod
     def find_ball(image):
         largest_contour = 0
         cont_index = 0
-        img, contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for idx, contour in enumerate(contours):
             area = cv2.contourArea(contour)
             if area > largest_contour:
@@ -205,7 +209,7 @@ class BallTracker:
     def hasFound(self):
         return self.found
 
-    def setControl(control):
+    def setControl(self, control):
         self.hasControl = control
 
     def getControl(self):
@@ -213,3 +217,9 @@ class BallTracker:
 
     def getAngle(self):
         return self.angle
+
+    def captureImage(self):
+	rec,frame = self.camera.read()
+	cv2.imwrite("test.jpg",frame)
+	#saves test image to the home folder. change the ip address if needed
+	call(["scp","test.jpg","192.168.1.101:/home/soro/"])
