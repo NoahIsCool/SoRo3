@@ -48,9 +48,9 @@ class GPSNavigator:
         self.target_bearing = None
         self.distance = None
         self.distanceToTarget = 10
-        self.leg_distance = 0.0
+        #self.leg_distance = 0.0
         self.hasControl = True
-        self.distance_traveled = 0.0
+        #self.distance_traveled = 0.0
         self.speed = 0
         self.angle = 0 
         self.ip = "10.0.0.2"
@@ -110,9 +110,9 @@ class GPSNavigator:
                 # Get target_longitude, target_latitude,217
                 # (not yet...height, and number of satellites) - need it in degrees
 
-                self.distance = self.get_distance()
-                self.leg_distance = self.distance
-                self.distance_traveled = (self.leg_distance - self.distance) / self.leg_distance
+                # self.distance = self.get_distance()
+                # self.leg_distance = self.distance
+                # self.distance_traveled = (self.leg_distance - self.distance) / self.leg_distance
                 theta = self.get_bearing(math.radians(self.target_longitude), math.radians(self.target_latitude), self.rover_longitude, self.rover_latitude)
                 self.delta_theta = self.get_bearing(self.rover_longitude, self.rover_latitude, self.last_rover_longitude, self.last_rover_latitude) - theta
 
