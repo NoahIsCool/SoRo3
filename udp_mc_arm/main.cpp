@@ -13,7 +13,8 @@ int main(int argc, char *argv[])
     arm_view window;
     window.show();
 
-    QObject::connect( &drivepad, SIGNAL(clawPosUpdated(float,float)), &window, SLOT(clawUpdatePos(float,float)) );
+    QObject::connect( &drivepad, SIGNAL(clawPosUpdated(float,float)), &window, SLOT(updateClawPos(float,float)) );
+    QObject::connect( &window, SIGNAL(armConfigUpdated(bool)), &drivepad, SLOT(updateArmConfig(bool)) );
 
     return a.exec();
 }

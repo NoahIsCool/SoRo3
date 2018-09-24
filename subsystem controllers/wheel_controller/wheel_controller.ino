@@ -21,28 +21,29 @@ Servo gimbal_pan, gimbal_tilt;
 char myHash = 0;
 char serialHash = 0;
 char pan = 0;
-char tilt = 0;
+char tiltByte = 0;
 char leftWheels = 0;
 char rightWheels = 0;
 char overdrive = 0;
+char tilt = 90;
 
 char incomingByte;
 int bytesRead = 0;
 
-char serResp[] = " 1,190,200!!!!!!!!!!!!!!!!!\n";
+char serResp[] = " 1,190,200!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 
 bool inTransmission = false;
 
 //setup wheels
 void setup() {
-  wheel[0].attach(4);
+  wheel[0].attach(2);
   wheel[1].attach(3);
-  wheel[2].attach(7);
+  wheel[2].attach(4);
   wheel[3].attach(5);
   wheel[4].attach(6);
-  wheel[5].attach(2);
-  
-  gimbal_pan.attach(8);
+  wheel[5].attach(7);
+  // 8 is an evil number, avoid at all cost
+  gimbal_pan.attach(10);
   gimbal_tilt.attach(9);
   
   Serial.begin(9600);
@@ -96,7 +97,10 @@ void loop() {
           rightWheels = incomingByte;
           break;
         case 4: // gimble tilt
-          tilt = incomingByte;
+          tiltByte = incomingByte;
+          tilt += tiltByte;
+          if(tilt <40 || tilt >= 127)
+              tilt -= tiltByte;
           break;
         case 5: // gimble pan
           pan = incomingByte;
@@ -104,15 +108,15 @@ void loop() {
         case 6: // hash (last byte recieved in transmission)
           serialHash = incomingByte;
           inTransmission = false;
-          myHash = (pan + tilt + leftWheels + rightWheels + overdrive)/5;
+          myHash = (pan + tiltByte + leftWheels + rightWheels + overdrive)/5;
           if(myHash == serialHash)
           {
-            sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d", overdrive, leftWheels, rightWheels, tilt, pan, serialHash);
-            Serial.println(serResp);
+            //sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d", overdrive, leftWheels, rightWheels, tilt, pan, serialHash);
+            //Serial.println(serResp);
             updateServos();
           } else {
-            sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d\t%d!!!!!!!", -125, overdrive, leftWheels, rightWheels, tilt, pan, serialHash);
-            Serial.println(serResp);
+            //sprintf(serResp, "%d\t%d\t%d\t%d\t%d\t%d!!!!!!!!!!!!!!!!!!!", overdrive, leftWheels, rightWheels, tilt, pan, serialHash);
+            //Serial.println(serResp);
             
           }
           break;
@@ -123,21 +127,23 @@ void loop() {
 }
 
 void updateServos(){
+  
    if(overdrive) {
       wheel[0].write(90 + leftWheels);
       wheel[1].write(90 + leftWheels);
-      wheel[2].write(90 + leftWheels);
-      wheel[3].write(90 - rightWheels);
+      wheel[2].write(90 - leftWheels);
+      wheel[3].write(90 + rightWheels);
       wheel[4].write(90 - rightWheels);
-      wheel[5].write(90 + rightWheels);
+      wheel[5].write(90 - rightWheels);
    } else {
-      wheel[0].write(90 + (leftWheels * 18/24));
-      wheel[1].write(90 + (leftWheels * 18/24));
-      wheel[2].write(90 + (leftWheels * 18/24));
-      wheel[3].write(90 - (rightWheels * 18/24));
-      wheel[4].write(90 - (rightWheels * 18/24));
-      wheel[5].write(90 + (rightWheels * 18/24));  
+      wheel[0].write(90 + (leftWheels * 1/2));
+      wheel[1].write(90 + (leftWheels * 1/2));
+      wheel[2].write(90 - (leftWheels * 1/2));
+      wheel[3].write(90 + (rightWheels * 1/2));
+      wheel[4].write(90 - (rightWheels * 1/2));
+      wheel[5].write(90 - (rightWheels * 1/2));  
    }
-   gimbal_pan.write(90 + pan);
-   gimbal_tilt.write(90 + tilt);
+   
+   gimbal_pan.write(93 + pan);
+   gimbal_tilt.write(tilt);
 }

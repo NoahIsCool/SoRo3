@@ -1,9 +1,20 @@
 #include "socket.h"
+
 // my laptop is 10.0.0.3 (WIFI)
 // soro desktop is 192.168.1.100
 
 socket::socket(QObject *parent) : QObject(parent)
 {
+    char tmp[10];
+    // start the file
+    for(int i = 0; i < 20; i++){
+        sprintf(tmp, "dataFile%d.csv",i);
+        if(!fopen(tmp,"r")){
+            //create a new file
+            dataFile = fopen(tmp,"w");
+            break;
+        }
+    }
     // timer to handle udp signal loss
     signalTimer = new QTimer();
     signalTimer->start(2000);
@@ -54,7 +65,7 @@ void socket::sendUDP(QByteArray data) // ******** CURRENTLY UNUSED
 {
     // qint64 QUdpSocket::writeDatagram(const QByteArray & datagram,
     //                      const QHostAddress & host, quint16 port)
-    socketIn->writeDatagram(data, QHostAddress("127.0.0.1"), 1237);//"192.168.1.103"), 1237);
+    socketIn->writeDatagram(data, QHostAddress("10.0.0.2"), 1237);//"192.168.1.103"), 1237);
 }
 
 void socket::readUDP()
@@ -202,15 +213,18 @@ void socket::readSerial()
     const QByteArray buffer = port->readAll();
 
     printf(buffer);
+    fprintf(dataFile,buffer);
 
     if(buffer.at(0) == -126) // incorrect id
     {
+        qDebug() << int(buffer.at(0)) << "\t" << int(buffer.at(1)) << "\t" << int(buffer.at(2));
         for(int i = 0; i < serialPorts.size(); i++)
         {
             if(serialPorts.at(i) == port)
             {
                 serialIds[i] = buffer.at(1);
                 qDebug() << port->portName() << "id set to" << serialIds[i];
+
             }
         }
     }
@@ -230,6 +244,7 @@ void socket::readSerial()
             {
                 for(int j = 0; j < dataPaths.size(); j++)
                 {
+
                     if(dataPaths.at(j).deviceId == serialIds.at(i))
                         socketIn->writeDatagram(buffer, QHostAddress(dataPaths.at(j).address), dataPaths.at(j).port);
                 }
@@ -240,14 +255,76 @@ void socket::readSerial()
 
 void socket::zeroDevices()
 {
+    /*
     //when you lose connection, tell all devices that all inputs are zero
     QByteArray stopBuffer;
-    stopBuffer.append(char(90));
-    stopBuffer.append(char(90));
-    stopBuffer.append(char(90));
-    stopBuffer.append(char(70));
-    stopBuffer.append(char((90+ 90 + 90 + 70)/4));
+    stopBuffer.append(char(-127));
+    stopBuffer.append(char(2));
     stopBuffer.append(char(0));
-
+    stopBuffer.append(char(0));
+    stopBuffer.append(char(0));
+    stopBuffer.append(char(0));
+    stopBuffer.append(char(0));
+    stopBuffer.append(char(0));
     sendSerialAll(stopBuffer);
+    */
+
+    for(int i = 0; i < serialPorts.size(); i++)
+    {
+
+        QByteArray stopBuffer;
+        stopBuffer.append(char(-127));
+        switch(serialIds.at(i))
+        {
+        case 0:
+            // drive
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            break;
+        case 1:
+            // arm
+            stopBuffer.append(char(1));
+            stopBuffer.append(char(90));
+            stopBuffer.append(char(135));
+            stopBuffer.append(char(135));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(175));
+            stopBuffer.append(char(150));
+            stopBuffer.append(char(97));
+            break;
+        case 2:
+            // drill
+            stopBuffer.append(char(2));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            break;
+        default:
+            // probably an uninitialized device id
+            stopBuffer.append(serialIds.at(i));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            stopBuffer.append(char(0));
+            break;
+        }
+        sendSerial(serialPorts.at(i), stopBuffer);
+    }
+}
+
+socket::~socket(){
+    fclose(dataFile);
 }

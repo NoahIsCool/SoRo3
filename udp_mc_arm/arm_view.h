@@ -18,16 +18,23 @@ public:
     ~arm_view();
 
 public slots:
-    void clawUpdatePos(float x, float y);
+    void updateClawPos(float x, float y);
+
+signals:
+    void armConfigUpdated(bool alt);
 
 private:
     Ui::arm_view *ui;
     float claw_x;
     float claw_y;
     QTimer* frame_timer;
+    bool alt_arm_config;
 
 protected:
     void paintEvent(QPaintEvent *event);
+
+private slots:
+    void on_altConfigCheck_stateChanged(int arg1);
 };
 
 #endif // ARM_VIEW_H

@@ -40,12 +40,10 @@ private:
     float right_x_axis;
     float right_y_axis;
 
-    float coord_x;
-    float coord_y;
-    float coord_z;
     float coord_u;
     float coord_v;
-    float coord_theta;
+
+    bool alt_arm_config;
 
 public slots:
     void onXAxis(double value);
@@ -59,6 +57,7 @@ public slots:
     void onButtonDown(bool pressed);
     void sendUDP();
     void message(QByteArray arr);
+    void updateArmConfig(bool alt);
 
 signals:
     void clawPosUpdated(float x, float y);

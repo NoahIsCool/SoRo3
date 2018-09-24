@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <stdio.h>
 
+
 // struct to hold info about what data (from a serial device) goes to what computer (udp stuff)
 struct data_path {
     int deviceId;
@@ -25,6 +26,7 @@ class socket : public QObject
 {
     Q_OBJECT
 public:
+    FILE *dataFile;
     explicit socket(QObject *parent = nullptr);
     void sendUDP(QByteArray data);
     void sendUDP(const char* message);
@@ -32,6 +34,7 @@ public:
     void sendSerial(QSerialPort* port, const char* message);
     void sendSerialAll(QByteArray message);
     void sendSerialAll(const char* message);
+    ~socket();
 
 signals:
 
@@ -51,6 +54,7 @@ private:
     QList<QSerialPort*> serialPorts;
     QList<int> serialIds;
     QList<data_path> dataPaths;
+
 };
 
 #endif // SOCKET_H
