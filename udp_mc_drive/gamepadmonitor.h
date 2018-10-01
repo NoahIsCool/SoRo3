@@ -13,8 +13,7 @@ class GamepadMonitor : public QObject
 {
     Q_OBJECT
 public:
-    //int buttons[10];
-    explicit GamepadMonitor(QObject *parent = 0);
+    explicit GamepadMonitor(QObject *parent = nullptr);
     ~GamepadMonitor();
 
 private:
@@ -24,7 +23,7 @@ private:
 
     void printVals();
 
-    qint8 overdrive = 0;
+    qint8 modifiers = 0;
     qint8 leftSide=0;
     qint8 rightSide=0;
     qint8 gimbleUD=0;
