@@ -3,8 +3,8 @@
 
 int main()
 {
-    char **ip = (char**)"192.168.1.123";
-    char **host = (char**)"55555";
+    char *ip = "192.168.1.123";
+    char *host = "55555";
     gps_init(ip, host);
         // temporary print statements for the sake of testing
 	while (1)
