@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Wno-strict-prototypes -Wno-unknown-warning-option -std=gnu99    CMakeFiles/libsbp_tcp_example2.dir/tcp_example2.c.o  -o libsbp_tcp_example2 -rdynamic -lsbp 

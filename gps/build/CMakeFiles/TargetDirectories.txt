@@ -1,0 +1,3 @@
+/home/tom/Desktop/libsbp/c/example/tcp_example/build/CMakeFiles/edit_cache.dir
+/home/tom/Desktop/libsbp/c/example/tcp_example/build/CMakeFiles/rebuild_cache.dir
+/home/tom/Desktop/libsbp/c/example/tcp_example/build/CMakeFiles/libsbp_tcp_example2.dir
