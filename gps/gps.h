@@ -47,7 +47,7 @@ int socket_desc;
  * function, thereby allowing the structs holding GPS data
  * to be constantly updated and accessed.
  */
-void gps_init();
+void gps_init(char *ip, char *port);
 
 
 /* The gps_finish function wraps up all the shit that is left hanging
