@@ -15,11 +15,11 @@
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // see header file for description
-void gps_init(char **ip, char **port)
+void gps_init(char *ip, char *port)
 {
     // assign the chosen ip address and port of Piksi
-    tcp_ip_addr = "192.168.1.222";
-    tcp_ip_port = "55555";
+    tcp_ip_addr = ip;
+    tcp_ip_port = port;
 
     // set descriptor, and call the setup function    
     socket_desc = -1;
