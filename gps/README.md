@@ -1,6 +1,6 @@
 ## TCP example in C for libsbp
 
-This example demonstrates parsing SBP over a TCP connection.
+GPS starting place: As of 10/13/18 is an example of receiving coordinates and some other stuff via TCP/IP from the Piksi. The test program simply prints out the values of the coordinates structs, but demonstrating that they're accessable is the important part. Uses C mutexes. I attempted to compile using G++ and gps.cpp and gps.hpp (with appropriate changes for C++) and am getting a couple of bugs - Someone with more knowledge about this should totally have a look and make changes.
 
 ## Requirements
 On Debian-based systems (including Ubuntu 12.10 or later) you can get all
@@ -21,29 +21,17 @@ package manager or from http://www.cmake.org/.
 
 ## Installation
 
-Once you have the dependencies installed, create a build directory where the example will be built:
+Once you have the dependencies installed, simply invoke make
 
 ```shell
-mkdir build
-cd build
-```
-
-Then invoke CMake to configure the build, and then build,
-
-```shell
-cmake ../
 make
 ```
+
+
 
 ## Usage
 
 ```shell
-./libsbp_tcp_example
-usage: ./libsbp_tcp_example [-a address -p port]
+./Test
+usage: ./Test [-a address -p port]
 ```
-
-## LICENSE
-
-Copyright © 2018 Swift Navigation
-
-Distributed under LGPLv3.0.
